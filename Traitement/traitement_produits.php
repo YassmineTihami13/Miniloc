@@ -112,9 +112,11 @@ $voir_tout = $_GET['voir_tout'] ?? '';
 if (!empty($ville) || !empty($categorie) || !empty($prix_interval) || !empty($note_min)) {
     // Si on utilise des filtres de recherche
     $annonces = getAnnoncesFiltrees($ville, $categorie, $prix_interval, $note_min);
+    
 } else {
     // Sinon on affiche seulement les annonces Premium
     $annonces = getToutesLesAnnonces();
+    
 }
 
 

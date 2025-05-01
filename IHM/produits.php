@@ -122,7 +122,11 @@ include_once('../Traitement/traitement_produits.php');
         <?php else: ?>
             <div class="row">
                 <?php foreach ($annonces as $annonce): ?>
+                    
                     <div class="col-lg-4 col-md-6 mb-4">
+                    <a href="detailsAnnonce.php?id=<?= urlencode($annonce['id']) ?><?= isset($annonce['note_moyenne']) && $annonce['note_moyenne'] !== null ? '&note=' . urlencode($annonce['note_moyenne']) : '' ?>" style="text-decoration: none; color: inherit;">
+
+
                         <div class="annonce-card">
                             <div class="card-img-container">
                                 <img src="../photos/<?= htmlspecialchars($annonce['image_url']) ?>" 
@@ -141,7 +145,7 @@ include_once('../Traitement/traitement_produits.php');
                                     <?php if ($annonce['note_moyenne']): ?>
                                         <span class="card-rating">
                                             <i class="fas fa-star"></i> 
-                                            <?= number_format($annonce['note_moyenne'], 1) ?>
+                                            <?= number_format($annonce['note_moyenne'], 1); ?>
                                         </span>
                                     <?php else: ?>
                                         <span class="card-rating" style="background-color: #e9ecef; color: #6c757d;">
@@ -151,6 +155,7 @@ include_once('../Traitement/traitement_produits.php');
                                 </div>
                             </div>
                         </div>
+                       </a>
                     </div>
                 <?php endforeach; ?>
             </div>

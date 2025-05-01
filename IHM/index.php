@@ -241,10 +241,11 @@ include_once('../Traitement/traitement_page_acceuil.php');
 
     <section class="py-5" style="background-color: var(--blanc);">
     <div class="container">
-        <h2 class="text-center mb-5" style="color: var(--bleu-ciel);">Annonces Premium</h2>
+        <h2 class="text-center mb-5" style="color: var(--bleu-ciel);" >Annonces Premium</h2>
         <div class="row">
             <?php foreach($annonces as $annonce): ?>
-            <div class="col-md-4 mb-4">
+            <div class="col-md-4 mb-4" id="poussette-card" style="cursor: pointer;">
+            <a href="../IHM/detailsAnnonce.php?id=<?= urlencode($annonce['id']) ?><?= isset($annonce['note_moyenne']) && $annonce['note_moyenne'] !== null ? '&note=' . urlencode($annonce['note_moyenne']) : '' ?>" style="text-decoration: none; color: inherit;">
                 <div class="card h-100">
                    <img src="../photos/<?= htmlspecialchars($annonce['image_url']) ?>"  class="card-img-top" alt="<?php echo htmlspecialchars($annonce['objet_nom']); ?>">
                     <div class="card-body">
@@ -257,15 +258,16 @@ include_once('../Traitement/traitement_page_acceuil.php');
                                 <span class="card-rating">
                                 <i class="fas fa-star"></i>
                                 <?= number_format($annonce['note_moyenne'], 1) ?>
-    </span>
-<?php else: ?>
-    <span class="card-rating" style="background-color: #e9ecef; color: #6c757d;">
-        <i ></i> Pas noté
-    </span>
-<?php endif; ?>
+                                </span>
+                            <?php else: ?>
+                                <span class="card-rating" style="background-color: #e9ecef; color: #6c757d;">
+                                    <i ></i> Pas noté
+                                </span>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
+                </a>
             </div>
             <?php endforeach; ?>
         </div>
@@ -273,6 +275,12 @@ include_once('../Traitement/traitement_page_acceuil.php');
                 <a href="../IHM/produits.php" class="btn btn-primary px-4"><i class="fas fa-list"></i> Voir toutes les annonces</a>
             </div>
     </div>
+
+
+    <!--- Dialogues ---->
+    
+
+</div>
     </section>
     <!-- Footer -->
     <footer class="py-4">
@@ -287,5 +295,6 @@ include_once('../Traitement/traitement_page_acceuil.php');
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
 </body>
 </html>
