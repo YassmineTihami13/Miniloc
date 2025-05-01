@@ -45,8 +45,23 @@ if (isset($_GET['id']) ) {
     $evaluation = $stmt->fetchAll();
     
 
-    $_SESSION['note'] = $note_moyenne ;
+    $stmt = $conn->prepare("
+    SELECT count(*) as number FROM annonce WHERE objet_id = ?
+    ");
+    $stmt->execute([$objet_id]);
+    $nbr_annonce = $stmt->fetch();
+    $nbr_publication=$nbr_annonce['number'];
 
+
+    $stmt = $conn->prepare("
+    SELECT nom,prenom,email, img_profil FROM utilisateur WHERE id = ?
+    ");
+    $stmt->execute([$details[0]['proprietaire_id']]);
+    $proprietaire = $stmt->fetch();
+    
+    $_SESSION['proprietaire'] = $proprietaire;
+    $_SESSION['note'] = $note_moyenne ;
+    $_SESSION['nbr_annonce'] = $nbr_publication-1 ;
     $_SESSION['details'] = $details;
     $_SESSION['objet_id'] = $objet_id;
     $_SESSION['evaluation'] = $evaluation;

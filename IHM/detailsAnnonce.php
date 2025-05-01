@@ -41,13 +41,13 @@ h2, h4 {
         <div class="col-md-6">
             <h2 id="product-name" class="fw-bold mb-3"><?= htmlspecialchars($_SESSION['details'][0]['nom']) ?></h2>
             <h4 id="product-price" class="text-success mb-4"><?= htmlspecialchars($_SESSION['details'][0]['prix_journalier']) ?> Dh/jour</h4>
-            <p id="product-description" class="text-muted">
-            <?= htmlspecialchars($_SESSION['details'][0]['description']) ?>
+            <p id="product-description" >
+            <strong>Description de l'objet:</strong> <?= htmlspecialchars($_SESSION['details'][0]['description']) ?>
             </p>
             <p><strong>Adresse de l'objet :</strong> <?= htmlspecialchars($_SESSION['details'][0]['ville']) ?></p>
             <p><strong>Adresse de l'annonce :</strong> <?= htmlspecialchars($_SESSION['details'][0]['adress']) ?></p>
             <p><strong>Status de l'objet :</strong> <?= htmlspecialchars($_SESSION['details'][0]['etat']) ?></p>
-            <p><strong>Nombre de location :</strong> Nombre de fois l'objet a eté mis en location</p>
+            <p><strong>Nombre de location précédente :</strong> <?= isset($_SESSION['nbr_annonce']) && $_SESSION['nbr_annonce'] !== null  ? $_SESSION['nbr_annonce']  : 'Cest la prmière publication de cet objet' ?></p>
             <p><strong>Évaluation de l'objet :</strong> 
                 <?= isset($_SESSION['note']) && $_SESSION['note'] !== null 
                     ? $_SESSION['note'] . ' ⭐' 
@@ -78,11 +78,13 @@ h2, h4 {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body">
-        <img src="https://via.placeholder.com/150" alt="Profil partenaire" class="rounded-circle mb-3 d-block mx-auto">
-        <h6 class="text-center">Marie Dupont</h6>
-        <p class="text-center text-muted">Paris</p>
-        <p><strong>À propos :</strong> Maman de deux enfants, je propose des articles de qualité pour faciliter la vie des autres parents en voyage ou déplacement.</p>
-        <p><strong>Évaluations :</strong> ⭐ 4.8 (32 avis)</p>
+        <img src="<?= htmlspecialchars($_SESSION['proprietaire']['img_profil']) ?>" alt="Profil partenaire" 
+        class="rounded-circle mb-3 d-block mx-auto" 
+        style="width: 120px; height: 120px; object-fit: cover;">
+        <h6 class="text-center"><?= htmlspecialchars($_SESSION['proprietaire']['nom']) ?> <?= htmlspecialchars($_SESSION['proprietaire']['prenom']) ?></h6>
+        
+        <p><strong>Email:</strong> <?= htmlspecialchars($_SESSION['proprietaire']['email']) ?></p>
+        <p><strong>Évaluations :</strong> je vais metter ici la moyenne de la note pris par cette propriètaire dans la table évaluation</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
