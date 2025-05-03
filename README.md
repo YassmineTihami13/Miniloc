@@ -1,1 +1,1 @@
-# EventLoca
+# MiniLoc
