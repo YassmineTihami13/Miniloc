@@ -19,8 +19,8 @@ include_once('../BD/connexion.php');
 
 $annonce_id = (int)$_GET['annonce_id'];
 
-// Récupérer les informations sur l'annonce
-$query = "SELECT a.*, o.nom as objet_nom, o.description, o.prix_journalier, o.ville, i.url as image_url, c.nom as categorie_nom
+// Récupérer les informations sur l'annonce et l'objet
+$query = "SELECT a.*, o.nom as objet_nom, o.description, o.prix_journalier, o.ville, o.etat as objet_etat, i.url as image_url, c.nom as categorie_nom
           FROM annonce a
           JOIN objet o ON a.objet_id = o.id
           JOIN categorie c ON o.categorie_id = c.id
@@ -38,8 +38,8 @@ if (!$annonce) {
     exit;
 }
 
-// Vérifier si l'annonce est disponible - on stocke cette info mais on ne redirige plus
-$annonce_disponible = ($annonce['statut'] === 'disponible');
+// Vérifier si l'objet est disponible - on stocke cette info
+$objet_disponible = ($annonce['objet_etat'] === 'non_loue');
 
 // Récupérer les périodes non disponibles (réservations existantes)
 $query_reservations = "SELECT date_debut, date_fin 
@@ -262,10 +262,10 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                         <div class="reservation-form">
                             <h4 class="mb-4"><i class="fas fa-calendar-check me-2"></i>Réserver cet article</h4>
                             
-                            <?php if(!$annonce_disponible): ?>
+                            <?php if(!$objet_disponible): ?>
                                 <div class="unavailable-alert">
                                     <i class="fas fa-exclamation-circle me-2"></i>
-                                    <strong>Attention :</strong> Cette annonce n'est pas disponible à la location actuellement.
+                                    <strong>Attention :</strong> Cet objet est actuellement loué et n'est pas disponible à la réservation.
                                 </div>
                             <?php endif; ?>
                             
@@ -334,7 +334,7 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
         </button>
     </div>
     <div class="col-md-4">
-        <button type="submit" class="btn submit-btn w-100" <?= !$annonce_disponible ? 'disabled' : '' ?>>
+        <button type="submit" class="btn submit-btn w-100" <?= !$objet_disponible ? 'disabled' : '' ?>>
             <i class="fas fa-check-circle me-2"></i>Confirmer
         </button>
     </div>
@@ -435,15 +435,15 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                 }
             }
             
-            // Vérifier si l'annonce est disponible
-            const isDisponible = <?= $annonce_disponible ? 'true' : 'false' ?>;
+            // Vérifier si l'objet est disponible
+            const isObjetDisponible = <?= $objet_disponible ? 'true' : 'false' ?>;
             
             // Valider le formulaire avant soumission
             document.getElementById('reservationForm').addEventListener('submit', function(e) {
-                // Si l'annonce n'est pas disponible, empêcher la soumission du formulaire
-                if (!isDisponible) {
+                // Si l'objet n'est pas disponible, empêcher la soumission du formulaire
+                if (!isObjetDisponible) {
                     e.preventDefault();
-                    alert("Cette annonce n'est pas disponible à la location actuellement.");
+                    alert("Cet objet est actuellement loué et n'est pas disponible à la réservation.");
                     return;
                 }
                 

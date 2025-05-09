@@ -33,6 +33,22 @@ function getDernieresAnnoncesPremium() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getNombreAnnoncesActives($partenaire_id) {
+    global $conn;
+    
+    $stmt = $conn->prepare("
+        SELECT COUNT(*) as nombre_annonces 
+        FROM annonce 
+        WHERE partenaire_id = :partenaire_id 
+        AND statut = 'active'
+    ");
+    
+    $stmt->execute(['partenaire_id' => $partenaire_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    return $result['nombre_annonces'];
+}
+
 
 $annonces = getDernieresAnnoncesPremium();
 

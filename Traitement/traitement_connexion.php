@@ -21,11 +21,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Authentification réussie
         $_SESSION['user_id'] = $utilisateur['id'];
         $_SESSION['user_email'] = $utilisateur['email'];
-        $_SESSION['user_role'] = $utilisateur['role'];
-
+        $_SESSION['role'] = $utilisateur['role'];
         $_SESSION['is_client'] = $utilisateur['est_client'];
         $_SESSION['is_partenaire'] = $utilisateur['est_partenaire'];
-        header("Location: ../IHM/index.php"); // redirection vers la page d'accueil
+
+        // Redirection selon le rôle
+        if ($utilisateur['role'] === 'proprietaire') {
+            header("Location: ../IHM/espace_partenaire.php");
+        } else {
+            header("Location: ../IHM/index.php");
+        }
         exit;
     } else {
         echo "Email ou mot de passe incorrect.";
