@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-include_once('../Traitement/traitement_produits.php');
+include_once('../Traitement/traitement_annonce_admin.php');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -33,7 +33,20 @@ include_once('../Traitement/traitement_produits.php');
 </head>
 <body  style="background-color: #FFFFFF;">
     <?php include 'navbar.php'; ?>
-    
+    <?php
+   
+    // Vérification de la connexion de l'admin
+    if (!isset($_SESSION['admin_id']) ) {
+        echo '<div class="container text-center my-5">
+                <div class="alert alert-danger">
+                    <h4>Accès refusé</h4>
+                    <p>Vous devez être connecté en tant qu’administrateur pour accéder à cette page.</p>
+                    <a href="../IHM/connexion_admin.php" class="btn btn-primary mt-3">Se connecter</a>
+                </div>
+            </div>';
+        exit(); 
+    }
+    ?>
     <div class="container py-5"  >
         <!-- Section de recherche -->
         <div class="search-container mb-4">
@@ -142,7 +155,7 @@ include_once('../Traitement/traitement_produits.php');
                 <?php foreach ($annonces as $annonce): ?>
                     
                     <div class="col-lg-4 col-md-6 mb-4">
-                    <a href="detailsAnnonce.php?id=<?= urlencode($annonce['id']) ?><?= isset($annonce['note_moyenne']) && $annonce['note_moyenne'] !== null ? '&note=' . urlencode($annonce['note_moyenne']) : '' ?>" style="text-decoration: none; color: inherit;">
+                    <a href="fiche_objet_admin.php?id=<?= urlencode($annonce['id']) ?><?= isset($annonce['note_moyenne']) && $annonce['note_moyenne'] !== null ? '&note=' . urlencode($annonce['note_moyenne']) : '' ?>" style="text-decoration: none; color: inherit;">
 
 
                         <div class="annonce-card">
@@ -172,8 +185,11 @@ include_once('../Traitement/traitement_produits.php');
                                     <?php endif; ?>
                                 </div>
                                 <div class="mt-3">
-                <a href="../IHM/formulaire_reservation.php?annonce_id=<?= htmlspecialchars($annonce['id']) ?>" class="btn w-100 reserve-btn">
-                    <i class="fas fa-calendar-check me-2"></i>Réserver
+                <a href="../IHM/formulaire_reservation.php?annonce_id=<?= htmlspecialchars($annonce['id']) ?>" class="btn btn-primary w-100 mb-3">
+                    <i class="fas fa-calendar-check me-2"></i>Valider
+                </a>
+                <a href="../IHM/formulaire_reservation.php?annonce_id=<?= htmlspecialchars($annonce['id']) ?>" class="btn btn-danger w-100">
+                    <i class="fas fa-calendar-check me-2"></i>Supprimer
                 </a>
             </div>
                             </div>

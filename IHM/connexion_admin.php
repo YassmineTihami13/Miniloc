@@ -8,7 +8,7 @@
 <body>
     <h2>Connexion Administrateur</h2>
 
-    <form action="../Traitement/connexion_admin.php" method="POST">
+    <form action="../Traitement/traitement_connexion_admin.php" method="POST">
         <label for="email">Email :</label><br>
         <input type="email" id="email" name="email" required><br><br>
 

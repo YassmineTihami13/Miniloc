@@ -37,11 +37,7 @@ if (isset($_GET['id']) ) {
     $image = $stmt->fetch(); 
     $image_url = $image ? $image['url'] : null;
     
-    $stmt = $conn->prepare("
-    SELECT * FROM evaluation WHERE objet_id = ?
-    ");
-    $stmt->execute([$objet_id]);
-    $evaluation = $stmt->fetchAll();
+    
     
     $stmt = $conn->prepare("
     SELECT count(*) as number FROM annonce WHERE objet_id = ?
@@ -51,18 +47,25 @@ if (isset($_GET['id']) ) {
     $nbr_publication=$nbr_annonce['number'];
 
     $stmt = $conn->prepare("
-    SELECT nom,prenom,email, img_profil FROM utilisateur WHERE id = ?
+    SELECT nom, prenom, email, img_profil FROM utilisateur WHERE id = ?
     ");
     $stmt->execute([$details[0]['proprietaire_id']]);
     $proprietaire = $stmt->fetch();
-    
-    // Store all necessary data in session variables
+
+    // Récupération de la moyenne d'évaluation du propriétaire
+    $stmt = $conn->prepare("
+        SELECT AVG(note) as moyenne FROM evaluation WHERE evalue_id = ?
+    ");
+    $stmt->execute([$details[0]['proprietaire_id']]);
+    $moyenne_row = $stmt->fetch();
+    $moyenne = $moyenne_row['moyenne'] !== null ? round($moyenne_row['moyenne'], 2) : 'Pas encore évalué';
+    // Storing all necessary data in session variables
     $_SESSION['proprietaire'] = $proprietaire;
     $_SESSION['note'] = $note_moyenne;
     $_SESSION['nbr_annonce'] = $nbr_publication-1;
     $_SESSION['details'] = $details;
     $_SESSION['objet_id'] = $objet_id;
-    $_SESSION['evaluation'] = $evaluation;
+    $_SESSION['moyenne']=$moyenne;
     $_SESSION['image'] = $image_url;
     
     // Also store the original annonce_id directly for easy access
