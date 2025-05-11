@@ -76,13 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             // Création d'un nouvel objet
             $stmt = $conn->prepare("
-                INSERT INTO objet (nom, categorie_id, description, ville, prix_journalier, proprietaire_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ");
-            
-            $result = $stmt->execute([
-                $nom, $categorie_id, $description, $ville, $prix_journalier, $_SESSION['user_id']
-            ]);
+    INSERT INTO objet (nom, categorie_id, description, ville, prix_journalier, proprietaire_id, etat)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+");
+
+$result = $stmt->execute([
+    $nom, $categorie_id, $description, $ville, $prix_journalier, $_SESSION['user_id'], 'non_loue'
+]);
+
 
             if (!$result) {
                 $error = $stmt->errorInfo();

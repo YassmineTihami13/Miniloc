@@ -75,6 +75,20 @@ h2, h4 {
 
 </style>
 <body class="bg-light">
+    <?php
+   
+    // Vérification de la connexion de l'admin
+    if (!isset($_SESSION['admin_id']) ) {
+        echo '<div class="container text-center my-5">
+                <div class="alert alert-danger">
+                    <h4>Accès refusé</h4>
+                    <p>Vous devez être connecté en tant qu’administrateur pour accéder à cette page.</p>
+                    <a href="../IHM/connexion_admin.php" class="btn btn-primary mt-3">Se connecter</a>
+                </div>
+            </div>';
+        exit(); 
+    }
+    ?>
     <?php if (isset($_SESSION['message'])): ?>
     <div class="alert alert-info alert-dismissible fade show" role="alert">
         <?= htmlspecialchars($_SESSION['message']) ?>
@@ -134,32 +148,7 @@ h2, h4 {
             }
             ?>
             <p>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                <hr>
-                <h5>Laisser un commentaire</h5>
-              
-                <form action="../Traitement/ajouter_commentaire.php?id_annonce=<?= $_SESSION['annonce_id'] ?>" method="post">
-                    <input type="hidden" name="objet_id" value="<?= $_SESSION['objet_id'] ?>">
-                   
-                    <input type="hidden" name="client_id" value="<?= $_SESSION['user_id'] ?>">
-                    <div class="mb-3">
-                        <label for="note" class="form-label">Note (sur 5)</label>
-                        <select name="noteComment" id="noteComment" class="form-select" required>
-                            <option value="">-- Choisir une note --</option>
-                            <?php for ($i = 5; $i >= 1; $i--): ?>
-                                <option value="<?= $i ?>"><?= $i ?></option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="commentaire" class="form-label">Commentaire</label>
-                        <textarea name="commentaire" id="commentaire" rows="4" class="form-control" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success">Envoyer</button>
-                </form>
-            <?php else: ?>
-                <p><em>Vous devez être connecté pour laisser un commentaire.</em></p>
-            <?php endif; ?>
+                
 
             <strong>Partenaire :</strong>
             <a href="#" data-bs-toggle="modal" data-bs-target="#partenaireModal">
@@ -167,7 +156,6 @@ h2, h4 {
             </a>
            </p>
            <!-- Utiliser directement l'ID de l'annonce stocké dans la session -->
-           <a href="../IHM/formulaire_reservation.php?annonce_id=<?= $_SESSION['annonce_id'] ?>" class="btn btn-primary me-2">Réserver</a>
            <button class="btn btn-outline-secondary" onclick="goBack()">Retour</button>
         </div>
     </div>

@@ -20,7 +20,7 @@ include_once('../Traitement/traitement_page_acceuil.php');
             --beige: #F5F5DC;
             --blanc: #FFFFFF;
         }
-        
+
         /* Navbar personnalisée */
         .navbar {
             display: flex;
@@ -28,46 +28,46 @@ include_once('../Traitement/traitement_page_acceuil.php');
             align-items: center;
             padding: 15px 50px;
             background-color: var(--blanc);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .logo {
             font-size: 24px;
             font-weight: bold;
             color: var(--bleu-ciel);
             margin-right: 40px;
         }
-        
+
         .nav-section {
             display: flex;
             align-items: center;
             gap: 40px;
             flex-grow: 1;
         }
-        
+
         .nav-links {
             display: flex;
             gap: 25px;
             list-style: none;
         }
-        
+
         .nav-links a {
             text-decoration: none;
             color: var(--bleu-ciel);
             font-weight: 500;
             transition: color 0.3s;
         }
-        
+
         .nav-links a:hover {
             color: var(--rose);
         }
-        
+
         .search-bar {
             flex: 0 1 400px;
             margin: 0 20px;
             position: relative;
         }
-        
+
         .search-bar input {
             width: 100%;
             padding: 8px 15px 8px 35px;
@@ -75,7 +75,7 @@ include_once('../Traitement/traitement_page_acceuil.php');
             border-radius: 20px;
             font-size: 14px;
         }
-        
+
         .search-bar i {
             position: absolute;
             top: 50%;
@@ -83,13 +83,13 @@ include_once('../Traitement/traitement_page_acceuil.php');
             transform: translateY(-50%);
             color: #aaa;
         }
-        
+
         .auth-buttons {
             display: flex;
             gap: 15px;
             margin-left: auto;
         }
-        
+
         .auth-buttons a {
             padding: 8px 20px;
             border-radius: 15px;
@@ -99,51 +99,50 @@ include_once('../Traitement/traitement_page_acceuil.php');
             align-items: center;
             gap: 8px;
         }
-        
+
         .signup {
             background-color: var(--rose);
             color: #333;
         }
-        
+
         .login {
             border: 1px solid var(--bleu-ciel);
             color: var(--bleu-ciel);
         }
-        
+
         @media (max-width: 1200px) {
             .navbar {
                 padding: 15px 20px;
             }
-            
+
             .nav-links {
                 display: none;
             }
-            
+
             .search-bar {
                 flex: 1;
             }
         }
-        
 
-        
+
+
         .hero-section {
-            background: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), 
-                        url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+
             background-size: cover;
             padding: 100px 0;
             text-align: center;
         }
-        
+
         .btn-primary {
             background-color: var(--rose);
             border: none;
             color: #333;
         }
-        
+
         .btn-primary:hover {
             background-color: var(--bleu-ciel);
         }
-        
+
         .card {
             border: none;
             border-radius: 15px;
@@ -151,49 +150,170 @@ include_once('../Traitement/traitement_page_acceuil.php');
             transition: transform 0.3s;
             background-color: var(--blanc);
         }
-        
+
         .card:hover {
             transform: translateY(-10px);
         }
-        
+
         .card-img-top {
             height: 200px;
             object-fit: cover;
         }
-        
+
         .category-badge {
             background-color: var(--bleu-ciel);
             color: white;
         }
 
         .card-rating {
-    background-color: #FFF9C4;
-    color: #FFA000;
-    padding: 0.35rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-.reserve-btn {
-    background-color: #FFB6C1; /* Couleur rose bébé */
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+            background-color: #FFF9C4;
+            color: #FFA000;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
 
-.reserve-btn:hover {
-    background-color: #FF9AAC; /* Rose plus foncé au survol */
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    color: #fff;
-}   
+        .reserve-btn {
+            background-color: #FFB6C1;
+            /* Couleur rose bébé */
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .reserve-btn:hover {
+            background-color: #FF9AAC;
+            /* Rose plus foncé au survol */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            color: #fff;
+        }
+
+
+        .hero-section {
+            display: flex;
+            align-items: center;
+            min-height: 70vh;
+            padding: 0;
+            background:rgba(255, 236, 255, 0.46);
+        }
+
+        .content-left {
+            flex: 1;
+            padding-right: 150px;
+        }
+
+        .brand-title {
+            font-size: 3.5rem;
+            color: #e91e63;
+            margin-bottom: 1.1rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 2.2rem;
+            color: #333;
+            margin-bottom: 1.1rem;
+            font-weight: 300;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.4rem;
+            max-width: 500px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: transform 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .circle-image {
+            border-radius: 50%;
+            position: absolute;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .image-container {
+            flex: 1;
+            position: relative;
+            height: 450px;
+            overflow: hidden; /* Cache les parties qui débordent */
+            padding-right: 40px;
+        }
+
+        .medium-circle {
+            width: 350px;
+            height: 350px;
+            right: 50px; /* Déborde sur la droite */
+            top: 40px; /* Déborde en haut */
+            z-index: 1;
+        }
+
+        .small-circle {
+            width: 220px;
+            height: 220px;
+            left: 50px; /* Positionné à gauche */
+            bottom: 20px; /* Positionné en bas */
+            z-index: 2;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+                padding: 4rem 5%;
+            }
+
+            .content-left {
+                padding-right: 0;
+                margin-top: 3rem;
+            }
+
+            .image-container {
+                width: 100%;
+                height: 400px;
+            }
+
+            
+            .medium-circle {
+                right: -50px;
+                top: -50px;
+                width: 350px;
+                height: 350px;
+            }
+
+            .small-circle {
+                left: 20px;
+                bottom: 20px;
+                width: 180px;
+                height: 180px;
+            }
+        }
+
         footer {
             background-color: var(--bleu-ciel);
             color: white;
         }
+
     </style>
 </head>
 <body>
@@ -201,9 +321,16 @@ include_once('../Traitement/traitement_page_acceuil.php');
 
     <!-- Hero Section -->
     <section class="hero-section">
-        <div class="container">
-            <h1 class="display-4 fw-bold" style="color: var(--bleu-ciel);">Louez tout pour bébé</h1>
-            <p class="lead">Poussettes, berceaux, jouets... économisez et simplifiez-vous la vie !</p>
+        <div class="content-left">
+            <h1 class="brand-title">MINILOC</h1>
+            <h2 class="subtitle">L'univers de bébé...<br>en location!</h2>
+            <p class="description">Des solutions simples pour les<br>premiers pas.</p>
+        </div>
+
+        <div class="image-container">
+            <!-- Remplacer par vos images -->
+            <div class="circle-image small-circle " style="background-image: url('../photos/IMAGE1.png')"></div>
+            <div class="circle-image medium-circle" style="background-image: url('../photos/IMAGE2.jpg')"></div>
         </div>
     </section>
 
@@ -262,7 +389,7 @@ include_once('../Traitement/traitement_page_acceuil.php');
             <div class="col-md-4 mb-4" id="poussette-card" style="cursor: pointer;">
             <a href="../IHM/detailsAnnonce.php?id=<?= urlencode($annonce['id']) ?><?= isset($annonce['note_moyenne']) && $annonce['note_moyenne'] !== null ? '&note=' . urlencode($annonce['note_moyenne']) : '' ?>" style="text-decoration: none; color: inherit;">
                 <div class="card h-100">
-                   <img src="../photos/<?= htmlspecialchars($annonce['image_url']) ?>"  class="card-img-top" alt="<?php echo htmlspecialchars($annonce['objet_nom']); ?>">
+                   <img src="../photos/<?= htmlspecialchars($annonce['image_url'] ?? 'images.png') ?>"  class="card-img-top" alt="<?php echo htmlspecialchars($annonce['objet_nom']); ?>">
                     <div class="card-body">
                         <span class="badge category-badge mb-2"><?php echo htmlspecialchars($annonce['categorie_nom']); ?></span>
                         <h5 class="card-title"><?php echo htmlspecialchars($annonce['objet_nom']); ?></h5>

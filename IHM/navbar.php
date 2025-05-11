@@ -2,7 +2,20 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+require_once '../BD/connexion.php';
+
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $stmt = $conn->prepare("SELECT nom FROM utilisateur WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user_name = $user ? $user['nom'] : 'Partenaire';
+} else {
+    $user_name = 'Invité';
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="fr">
@@ -108,6 +121,20 @@ if (session_status() === PHP_SESSION_NONE) {
             color: #2196f3;
         }
 
+        .welcome-message {
+            color: #e91e63;
+            /* Couleur rose coordonnée au logo */
+            font-weight: 500;
+            margin-right: 25px;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            padding: 6px;
+            border-radius: 20px;
+            background-color: rgba(233, 30, 99, 0.1);
+            /* Fond semi-transparent */
+            transition: all 0.3s ease;
+        }
+
         @media (max-width: 1200px) {
             .navbar {
                 padding: 15px 20px;
@@ -124,52 +151,83 @@ if (session_status() === PHP_SESSION_NONE) {
 
 
         /* Style des boutons */
-.auth-buttons a {
-    padding: 8px 15px;
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: 500;
+        .auth-buttons a {
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            background: #f8f9fa;
+            color: #2196F3;
+            margin-left: 10px;
+        }
+
+        /* Déconnexion */
+        .logout {
+            color: #e91e63 !important;
+            border-color: #e91e63;
+        }
+
+
+
+        /* Boutons switch */
+        .btn-switch,
+        .devenir-role {
+            border-color: #2196F3;
+            color: #2196F3 !important;
+        }
+
+        
+
+        
+        .welcome-message {
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    border: 2px solid transparent;
-    background: #f8f9fa;
-    color: #2196F3;
-    margin-left: 10px;
-}
-
-/* Déconnexion */
-.logout {
-    color: #e91e63 !important;
-    border-color: #e91e63;
-}
-
-
-
-/* Boutons switch */
-.btn-switch, .devenir-role {
-    border-color: #2196F3;
-    color: #2196F3 !important;
-}
+    gap: 0.5rem;
+    text-align: center;
+    border-radius: 50px;
+    background: rgba(233, 30, 99, 0.05);
+    border: 1px solid rgba(233, 30, 99, 0.15);
+    padding-left: 15px;
     
+}
     </style>
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="nav-section">
+        <div class="nav-left">
             <div class="logo"><i class="fa-solid fa-baby"></i> BabyShop</div>
-            <ul class="nav-links">
-                <li><a href="../Traitement/traitement_index.php"><i class="fa-solid fa-heart"></i> Acceuil</a></li>
-                <li><a href="../IHM/produits.php"><i class="fa-solid fa-gift"></i> Annonces</a></li>
-                
-                <li><a href="#"><i class="fa-solid fa-bag-shopping"></i> Boutique</a></li>
-                <li><a href="#"><i class="fa-solid fa-info-circle"></i> À propos</a></li>
-            </ul>
+            <span class="welcome-message">
+            <i class="fa-regular fa-user"></i><?php echo htmlspecialchars($user_name); ?>
+            </span>
         </div>
+        <ul class="nav-links">
 
+            <?php
+            if (isset($_SESSION['user_id'])) {
+                // Rôle CLIENT
+                if ($_SESSION['role'] === 'client') {
+                    echo '<li><a href="../Traitement/traitement_index.php"><i class="fa-solid fa-heart"></i> Acceuil</a></li>';
+                    echo '<li><a href="../IHM/produits.php"><i class="fas fa-bullhorn"></i> Annonces</a></li>';
+                }
+                // Rôle PROPRIETAIRE
+                elseif ($_SESSION['role'] === 'proprietaire') {
+                    echo '<li><a href="../IHM/espace_partenaire.php"><i class="fa-solid fa-heart"></i> Acceuil</a></li>';
+                    echo '<li><a href="../IHM/liste_annonces.php"><i class="fas fa-bullhorn"></i> Mes Annonces</a></li>';
+                }
+            } else {
+                // Liens par défaut si non connecté
+                echo '<li><a href="../Traitement/traitement_index.php"><i class="fa-solid fa-heart"></i> Acceuil</a></li>';
+                echo '<li><a href="../IHM/produits.php"><i class="fa-solid fa-gift"></i> Annonces</a></li>';
+            }
+            ?>
 
+        </ul>
 
         <div class="auth-buttons">
             <?php
@@ -186,7 +244,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     echo '<a href="#" class="btn devenir-role" data-role="client"><i class="fa-solid fa-user"></i> Devenir client</a>';
                 } elseif ($isClient && $isPartenaire) {
                     // Détermination du libellé dynamique
-                    $currentRole = $_SESSION['user_role'];
+                    $currentRole = $_SESSION['role'];
                     $targetRole = ($currentRole === 'client') ? 'Partenaire' : 'Client';
                     $targetIcon = ($currentRole === 'client') ? 'fa-repeat' : 'fa-repeat';
 
@@ -201,11 +259,10 @@ if (session_status() === PHP_SESSION_NONE) {
                 // Utilisateur non connecté
                 echo '<a href="../IHM/inscription.php" style="background-color: #e91e63; color: #fff; padding: 8px 20px; border-radius: 15px; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-user-plus"></i> S\'inscrire</a>';
                 echo '<a href="../IHM/connexion.php" class="login"><i class="fa-solid fa-right-to-bracket"></i> Connexion</a>';
-
-                 }
+            }
             ?>
 
-            
+
         </div>
 
     </nav>
@@ -239,27 +296,7 @@ if (session_status() === PHP_SESSION_NONE) {
     </div>
 
 </body>
-<script>
-    document.querySelector('.btn-switch').addEventListener('click', function(e) {
-        e.preventDefault();
 
-        fetch(this.href, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    this.innerHTML = data.buttonHtml;
-                    // Mettre à jour d'autres éléments UI si nécessaire
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => console.error('Erreur:', error));
-    });
-</script>
 <script>
     let roleToBecome = '';
 
@@ -312,6 +349,26 @@ if (session_status() === PHP_SESSION_NONE) {
             .catch(error => console.error('Erreur:', error));
     });
 </script>
+<script>
+    document.querySelector('.btn-switch').addEventListener('click', function(e) {
+        e.preventDefault();
 
+        fetch(this.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Redirection immédiate + rechargement du DOM
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => console.error('Erreur:', error));
+    });
+</script>
 
 </html>

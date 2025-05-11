@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mot_pass = $_POST['mot_pass'];
 
     // Préparer et exécuter la requête pour vérifier l'admin dans la base
-    $stmt = $pdo->prepare("SELECT * FROM admin WHERE email = :email");
+    $stmt = $conn->prepare("SELECT * FROM admin WHERE email = :email");
     $stmt->execute(['email' => $email]);
     $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Si la connexion échoue, afficher un message d'erreur
         $_SESSION['erreur'] = "Email ou mot de passe incorrect.";
-        header("Location: ../IHM/connexion_admin.html"); // Retourner vers le formulaire de connexion
+        header("Location: ../IHM/connexion_admin.php"); // Retourner vers le formulaire de connexion
         exit();
     }
 }

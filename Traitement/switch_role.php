@@ -32,11 +32,18 @@ try {
         ':id' => $_SESSION['user_id']
     ]);
 
-    // 4. Vérifier la modification
+    
     if ($updateStmt->rowCount() > 0) {
-        $_SESSION['user_role'] = $nouveauRole;
+        $_SESSION['role'] = $nouveauRole;
+    
+        // Définir l'URL de redirection ABSOLUE
+        $redirectUrl = ($nouveauRole === 'client') 
+                     ? '../Traitement/traitement_index.php' 
+                     : '../IHM/espace_partenaire.php';
+    
         echo json_encode([
             'status' => 'success',
+            'redirectUrl' => $redirectUrl,
             'newRole' => $nouveauRole,
             'buttonHtml' => generateButtonHtml($nouveauRole)
         ]);
