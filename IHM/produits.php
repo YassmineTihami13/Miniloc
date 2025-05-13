@@ -147,7 +147,7 @@ include_once('../Traitement/traitement_produits.php');
 
                         <div class="annonce-card">
                             <div class="card-img-container">
-                                <img src="../photos/<?= htmlspecialchars($annonce['image_url'] ?? 'images.png') ?>" 
+                                <img src="../uploads/<?= htmlspecialchars($annonce['image_url'] ?? 'images.png') ?>" 
                                      class="card-img-top" 
                                      alt="<?= htmlspecialchars($annonce['categorie_nom']) ?>">
                             </div>

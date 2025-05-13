@@ -389,7 +389,7 @@ include_once('../Traitement/traitement_page_acceuil.php');
             <div class="col-md-4 mb-4" id="poussette-card" style="cursor: pointer;">
             <a href="../IHM/detailsAnnonce.php?id=<?= urlencode($annonce['id']) ?><?= isset($annonce['note_moyenne']) && $annonce['note_moyenne'] !== null ? '&note=' . urlencode($annonce['note_moyenne']) : '' ?>" style="text-decoration: none; color: inherit;">
                 <div class="card h-100">
-                   <img src="../photos/<?= htmlspecialchars($annonce['image_url'] ?? 'images.png') ?>"  class="card-img-top" alt="<?php echo htmlspecialchars($annonce['objet_nom']); ?>">
+                   <img src="../uploads/<?= htmlspecialchars($annonce['image_url'] ?? 'images.png') ?>"  class="card-img-top" alt="<?php echo htmlspecialchars($annonce['objet_nom']); ?>">
                     <div class="card-body">
                         <span class="badge category-badge mb-2"><?php echo htmlspecialchars($annonce['categorie_nom']); ?></span>
                         <h5 class="card-title"><?php echo htmlspecialchars($annonce['objet_nom']); ?></h5>

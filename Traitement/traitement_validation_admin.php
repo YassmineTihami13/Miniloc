@@ -109,8 +109,9 @@ try {
         $_SESSION['message_success'] = "L'annonce a été validée avec succès.";
         
     } elseif ($action === 'supprimer') {
-        // 1. Récupérer les informations du partenaire avant suppression
-        $sql = "SELECT u.id AS proprietaire_id, u.email, u.nom, u.prenom, o.nom AS objet_nom 
+        // 1. Récupérer les informations de l'annonce et de l'objet avant suppression
+        $sql = "SELECT a.id AS annonce_id, a.objet_id, o.id AS objet_id, o.nom AS objet_nom, 
+                       u.id AS proprietaire_id, u.email, u.nom, u.prenom
                 FROM annonce a 
                 JOIN utilisateur u ON a.proprietaire_id = u.id 
                 JOIN objet o ON a.objet_id = o.id 
@@ -119,38 +120,93 @@ try {
         $stmt->execute([':id' => $annonceId]);
         $info = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // 2. Supprimer l'annonce
-        $sql = "DELETE FROM annonce WHERE id = :id";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([':id' => $annonceId]);
-        
-        // 3. Envoyer un email de notification au partenaire
         if ($info) {
-            $destinataire = $info['email'];
-            $sujet = "Miniloc - Votre annonce a été supprimée";
-            $message = "Bonjour " . htmlspecialchars($info['prenom']) . " " . htmlspecialchars($info['nom']) . ",\n\n";
-            $message .= "Nous vous informons que votre annonce pour \"" . htmlspecialchars($info['objet_nom']) . "\" a été supprimée par notre équipe administrative.\n";
-            $message .= "Si vous avez des questions concernant cette décision, n'hésitez pas à nous contacter.\n\n";
-            $message .= "Cordialement,\n";
-            $message .= "L'équipe Miniloc";
+            // Début de la transaction
+            $conn->beginTransaction();
             
-            // Envoi de l'email avec PHPMailer
-            $emailSent = sendEmail($destinataire, $sujet, $message, $info['prenom'], $info['nom']);
-            
-            // Ajout d'une notification dans la base de données
-            $sqlNotif = "INSERT INTO notification (contenu, contenu_email, sujet_email, utilisateur_id, annonce_id) 
-                        VALUES (:contenu, :contenu_email, :sujet_email, :utilisateur_id, :annonce_id)";
-            $stmtNotif = $conn->prepare($sqlNotif);
-            $stmtNotif->execute([
-                ':contenu' => "Votre annonce \"" . $info['objet_nom'] . "\" a été supprimée",
-                ':contenu_email' => $message,
-                ':sujet_email' => $sujet,
-                ':utilisateur_id' => $info['proprietaire_id'],
-                ':annonce_id' => null // L'annonce n'existe plus
-            ]);
+            try {
+                // 2. Supprimer les références à l'annonce dans les notifications
+                $sqlUpdateNotif = "UPDATE notification SET annonce_id = NULL WHERE annonce_id = :annonce_id";
+                $stmtUpdateNotif = $conn->prepare($sqlUpdateNotif);
+                $stmtUpdateNotif->execute([':annonce_id' => $annonceId]);
+                
+                // 3. Supprimer les réservations liées à l'annonce
+                // Note: Si vous avez des contraintes de clé étrangère, vous devrez peut-être 
+                // supprimer d'autres tables qui font référence aux réservations (comme les évaluations)
+                $sqlCheckReservations = "SELECT id FROM reservation WHERE annonce_id = :annonce_id";
+                $stmtCheckReservations = $conn->prepare($sqlCheckReservations);
+                $stmtCheckReservations->execute([':annonce_id' => $annonceId]);
+                $reservations = $stmtCheckReservations->fetchAll(PDO::FETCH_ASSOC);
+                
+                foreach ($reservations as $reservation) {
+                    // Supprimer les évaluations liées à cette réservation
+                    $sqlDeleteEvaluations = "DELETE FROM evaluation WHERE reservation_id = :reservation_id";
+                    $stmtDeleteEvaluations = $conn->prepare($sqlDeleteEvaluations);
+                    $stmtDeleteEvaluations->execute([':reservation_id' => $reservation['id']]);
+                    
+                    // Supprimer les réclamations liées à cette réservation
+                    $sqlDeleteReclamations = "DELETE FROM reclamation WHERE reservation_id = :reservation_id";
+                    $stmtDeleteReclamations = $conn->prepare($sqlDeleteReclamations);
+                    $stmtDeleteReclamations->execute([':reservation_id' => $reservation['id']]);
+                }
+                
+                // Maintenant supprimer les réservations
+                $sqlDeleteReservations = "DELETE FROM reservation WHERE annonce_id = :annonce_id";
+                $stmtDeleteReservations = $conn->prepare($sqlDeleteReservations);
+                $stmtDeleteReservations->execute([':annonce_id' => $annonceId]);
+                
+                // 4. Supprimer l'annonce
+                $sqlDeleteAnnonce = "DELETE FROM annonce WHERE id = :id";
+                $stmtDeleteAnnonce = $conn->prepare($sqlDeleteAnnonce);
+                $stmtDeleteAnnonce->execute([':id' => $annonceId]);
+                
+                // 5. Supprimer les images associées à l'objet
+                $sqlDeleteImages = "DELETE FROM image WHERE objet_id = :objet_id";
+                $stmtDeleteImages = $conn->prepare($sqlDeleteImages);
+                $stmtDeleteImages->execute([':objet_id' => $info['objet_id']]);
+                
+                // 6. Supprimer l'objet
+                $sqlDeleteObjet = "DELETE FROM objet WHERE id = :id";
+                $stmtDeleteObjet = $conn->prepare($sqlDeleteObjet);
+                $stmtDeleteObjet->execute([':id' => $info['objet_id']]);
+                
+                // Valider la transaction
+                $conn->commit();
+                
+                // 7. Envoyer un email de notification au partenaire
+                $destinataire = $info['email'];
+                $sujet = "Miniloc - Votre annonce a été supprimée";
+                $message = "Bonjour " . htmlspecialchars($info['prenom']) . " " . htmlspecialchars($info['nom']) . ",\n\n";
+                $message .= "Nous vous informons que votre annonce pour \"" . htmlspecialchars($info['objet_nom']) . "\" a été supprimée par notre équipe administrative.\n";
+                $message .= "Si vous avez des questions concernant cette décision, n'hésitez pas à nous contacter.\n\n";
+                $message .= "Cordialement,\n";
+                $message .= "L'équipe Miniloc";
+                
+                // Envoi de l'email avec PHPMailer
+                $emailSent = sendEmail($destinataire, $sujet, $message, $info['prenom'], $info['nom']);
+                
+                // Ajout d'une notification dans la base de données
+                $sqlNotif = "INSERT INTO notification (contenu, contenu_email, sujet_email, utilisateur_id, annonce_id) 
+                            VALUES (:contenu, :contenu_email, :sujet_email, :utilisateur_id, :annonce_id)";
+                $stmtNotif = $conn->prepare($sqlNotif);
+                $stmtNotif->execute([
+                    ':contenu' => "Votre annonce \"" . $info['objet_nom'] . "\" a été supprimée",
+                    ':contenu_email' => $message,
+                    ':sujet_email' => $sujet,
+                    ':utilisateur_id' => $info['proprietaire_id'],
+                    ':annonce_id' => null // L'annonce n'existe plus
+                ]);
+                
+                $_SESSION['message_success'] = "L'annonce, l'objet et les images associées ont été supprimés avec succès.";
+                
+            } catch (PDOException $e) {
+                // En cas d'erreur, annuler la transaction
+                $conn->rollBack();
+                throw $e; // Propager l'exception pour la capture globale
+            }
+        } else {
+            $_SESSION['message_error'] = "Annonce introuvable.";
         }
-        
-        $_SESSION['message_success'] = "L'annonce a été supprimée avec succès.";
         
     } else {
         $_SESSION['message_error'] = "Action non reconnue.";

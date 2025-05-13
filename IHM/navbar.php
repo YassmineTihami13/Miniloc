@@ -101,7 +101,7 @@ if (isset($_SESSION['user_id'])) {
             margin-left: auto;
         }
 
-        .auth-buttons a {
+        .auth-buttons login {
             padding: 8px 20px;
             border-radius: 15px;
             text-decoration: none;
@@ -151,7 +151,7 @@ if (isset($_SESSION['user_id'])) {
 
 
         /* Style des boutons */
-        .auth-buttons a {
+        .auth-buttons login {
             padding: 8px 15px;
             border-radius: 20px;
             text-decoration: none;
@@ -256,6 +256,7 @@ if (isset($_SESSION['user_id'])) {
                 // Bouton de déconnexion
                 echo '<a href="../Traitement/deconnexion.php" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>';
             } else {
+                echo '<a href="../IHM/connexion_admin.php" style="color:  #007bff; text-decoration: none; font-weight: 500; padding-bottom: 2px  #007bff;">Espace admin</a>';
                 // Utilisateur non connecté
                 echo '<a href="../IHM/inscription.php" style="background-color: #e91e63; color: #fff; padding: 8px 20px; border-radius: 15px; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-user-plus"></i> S\'inscrire</a>';
                 echo '<a href="../IHM/connexion.php" class="login"><i class="fa-solid fa-right-to-bracket"></i> Connexion</a>';

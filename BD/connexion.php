@@ -1,6 +1,6 @@
 <?php
 $host = 'localhost';
-$dbname = 'miniloc';
+$dbname = 'miniloc1';
 $username = 'root';
 $password = '';
 $port = '3306';

@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 include_once('../BD/connexion.php');
@@ -179,11 +178,80 @@ WHERE r.id = :id
     }
 
     elseif ($action === 'rejeter' && $res['statut'] === 'en_attente') {
+        // Récupérer le message de justification envoyé par le propriétaire
+        $message_rejet = isset($_POST['message_rejet']) ? trim($_POST['message_rejet']) : '';
+
+        if (empty($message_rejet)) {
+            $_SESSION['error'] = "Veuillez fournir un message de justification pour le rejet.";
+            header('Location: ../IHM/mes_annonces.php');
+            exit;
+        }
+
+        // Mettre à jour le statut en 'rejete' et enregistrer le message si vous avez une colonne pour cela
         $update = $conn->prepare("UPDATE reservation SET statut = 'rejete' WHERE id = :id");
         $update->bindParam(':id', $reservation_id, PDO::PARAM_INT);
         $update->execute();
-        $_SESSION['success'] = "Réservation rejetée.";
 
+        // Envoi de l'email au client avec le message de rejet
+        try {
+            $mailClient = new PHPMailer(true);
+            $mailClient->isSMTP();
+            $mailClient->Host = 'smtp.gmail.com';
+            $mailClient->SMTPAuth = true;
+            $mailClient->Username = 'rahali.chaimaa@etu.uae.ac.ma';
+            $mailClient->Password = 'fzsmrfmbluqbfdcf';
+            $mailClient->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mailClient->Port = 587;
+            $mailClient->CharSet = 'UTF-8';
+            $mailClient->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ];
+
+            $mailClient->setFrom('no-reply@miniloc.com', 'MiniLoc');
+            $mailClient->addAddress($res['client_email']);
+            $mailClient->isHTML(true);
+            $mailClient->Subject = 'Réservation Rejetée - Justification';
+
+            $body = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;'>
+                <div style='background: #f8f9fa; padding: 20px; text-align: center;'>
+                    <span style='font-size: 24px; font-weight: bold; color: #e17055;'>👶MiniLoc</span>
+                </div>
+                <div style='padding: 30px;'>
+                    <h2 style='color: #d63031; margin-bottom: 20px;'>❌ Réservation Rejetée</h2>
+                    <div style='background: #ffe6e6; padding: 18px; border-radius: 8px; margin-bottom: 25px;'>
+                        <h3 style='color: #d63031; margin-top: 0;'>Message du propriétaire</h3>
+                        <p style='margin: 8px 0; font-style: italic;'>" . nl2br(htmlspecialchars($message_rejet)) . "</p>
+                    </div>
+                    <div style='background: #fff4e6; padding: 18px; border-radius: 8px; margin-bottom: 25px;'>
+                        <h3 style='color: #e17055; margin-top: 0;'>📦 Détails de la Location</h3>
+                        <p><strong>Objet :</strong> " . htmlspecialchars($res['objet_nom']) . "</p>
+                        <p><strong>Description :</strong> " . nl2br(htmlspecialchars($res['objet_description'])) . "</p>
+                        <p><strong>Prix /jour :</strong> <span style='color: #e84393; font-weight: bold;'>" . htmlspecialchars($res['objet_prix_journalier']) . " DH</span></p>
+                        <p><strong>Dates :</strong> du " . date('d/m/Y', strtotime($res['date_debut'])) . " au " . date('d/m/Y', strtotime($res['date_fin'])) . "</p>
+                    </div>
+                    <div style='margin-top: 30px; text-align: center;'>
+                        <span style='color: #636e72;'>Nous restons à votre disposition pour toute question.<br>L'équipe <b>MiniLoc</b></span>
+                    </div>
+                </div>
+                <div style='background: #2d3436; color: white; padding: 16px; text-align: center;'>
+                    <p style='margin: 0;'>📧 contact@miniloc.com &nbsp; | &nbsp; 📱 +33 1 23 45 67 89</p>
+                </div>
+            </div>
+            ";
+
+            $mailClient->Body = $body;
+            $mailClient->send();
+
+            $_SESSION['success'] = "Réservation rejetée et message envoyé au client.";
+
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Erreur lors de l'envoi de l'email au client : " . $e->getMessage();
+        }
     } elseif ($action === 'terminer' && $res['statut'] === 'confirmee' && $res['date_fin'] <= $today) {
         // Mettre à jour le statut en terminée
         $update = $conn->prepare("UPDATE reservation SET statut = 'terminee' WHERE id = :id");

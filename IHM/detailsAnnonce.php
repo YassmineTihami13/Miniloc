@@ -86,7 +86,7 @@ h2, h4 {
 <div class="container py-5">
     <div class="row">
         <div class="col-md-6 text-center">
-            <img id="product-image" src="../photos/<?= htmlspecialchars($_SESSION['image'] ?? 'images.png') ?>" alt="Produit" class="img-fluid rounded shadow">
+            <img id="product-image" src="../uploads/<?= htmlspecialchars($_SESSION['image'] ?? 'images.png') ?>" alt="Produit" class="img-fluid rounded shadow">
 
         </div>
         <div class="col-md-6">

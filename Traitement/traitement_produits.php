@@ -5,22 +5,23 @@ include_once '../BD/connexion.php';
 function getAnnoncesFiltrees($ville = '', $categorie = '', $prix_interval = '', $note_min = '') {
     global $conn;
 
-    $sql = "
-    SELECT a.*, o.nom AS objet_nom, o.ville, o.prix_journalier, c.nom AS categorie_nom, 
-           i.url AS image_url, e.note AS note_moyenne,
-           (CASE 
-                WHEN a.premium = 1 
-                     AND CURDATE() <= DATE_ADD(a.date_debut_premium, INTERVAL a.duree_premium DAY) 
-                THEN 1 
-                ELSE 0 
-            END) AS est_actuellement_premium
-    FROM annonce a
-    JOIN objet o ON a.objet_id = o.id
-    JOIN categorie c ON o.categorie_id = c.id
-    LEFT JOIN image i ON o.id = i.objet_id
-    LEFT JOIN evaluation e ON o.id = e.objet_id
-    WHERE 1
-    ";
+   $sql = "
+SELECT a.*, o.nom AS objet_nom, o.ville, o.prix_journalier, c.nom AS categorie_nom, 
+       i.url AS image_url, e.note AS note_moyenne,
+       (CASE 
+            WHEN a.premium = 1 
+                 AND CURDATE() <= DATE_ADD(a.date_debut_premium, INTERVAL a.duree_premium DAY) 
+            THEN 1 
+            ELSE 0 
+        END) AS est_actuellement_premium
+FROM annonce a
+JOIN objet o ON a.objet_id = o.id
+JOIN categorie c ON o.categorie_id = c.id
+LEFT JOIN image i ON o.id = i.objet_id
+LEFT JOIN evaluation e ON o.id = e.objet_id
+WHERE a.statut = 'active' AND a.visibility = 1
+";
+
  $params=[];
   
 
@@ -93,9 +94,11 @@ JOIN objet o ON a.objet_id = o.id
 JOIN categorie c ON o.categorie_id = c.id
 LEFT JOIN image i ON o.id = i.objet_id
 LEFT JOIN evaluation e ON o.id = e.objet_id
+WHERE a.statut = 'active' AND a.visibility = 1
 GROUP BY a.id
 ORDER BY est_actuellement_premium DESC, a.date_publication DESC
 ";
+
      $stmt = $conn->prepare($sql);
      $stmt->execute();
      return $stmt->fetchAll(PDO::FETCH_ASSOC);

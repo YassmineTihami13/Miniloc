@@ -1,10 +1,26 @@
 <?php
 session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Vérifier si les fichiers requis existent
+$required_files = [
+    '../BD/connexion.php',
+    '../Traitement/objetTraitement.php'
+];
+
+foreach ($required_files as $file) {
+    if (!file_exists($file)) {
+        die("Erreur : Le fichier $file est manquant. Veuillez vérifier l'installation.");
+    }
+}
+
 include '../BD/connexion.php';
 include '../Traitement/objetTraitement.php';
 
-// Vérifier si l'utilisateur est connecté et est un partenaire
+// Vérifier si l'utilisateur est connecté et est un propriétaire
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'proprietaire') {
+    $_SESSION['error'] = "Vous devez être connecté en tant que propriétaire pour accéder à cette page.";
     header('Location: ../index.php');
     exit();
 }
@@ -22,8 +38,13 @@ if (isset($_GET['id'])) {
 }
 
 // Récupérer les catégories
-$stmt = $conn->query("SELECT * FROM categorie ORDER BY nom");
-$categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $conn->query("SELECT * FROM categorie ORDER BY nom");
+    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $_SESSION['error'] = "Erreur lors de la récupération des catégories : " . $e->getMessage();
+    $categories = [];
+}
 ?>
 
 <!DOCTYPE html>
@@ -148,12 +169,50 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <!-- Navbar -->
-    <?php include 'navbar.php'?>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="espace_partenaire.php">MiniLoc</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="espace_partenaire.php"><i class="fas fa-home"></i> Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="liste_annonces.php"><i class="fas fa-list"></i> Mes Annonces</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <!-- Main Content -->
     <div class="container">
         <div class="form-container">
             <h2 class="mb-4"><?php echo $objet ? 'Modifier' : 'Ajouter'; ?> un Objet</h2>
             
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <?php 
+                    echo $_SESSION['success'];
+                    unset($_SESSION['success']);
+                    ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?php 
+                    echo $_SESSION['error'];
+                    unset($_SESSION['error']);
+                    ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
             <form action="../Traitement/traitement_objet.php" method="POST" enctype="multipart/form-data" id="objetForm">
                 <?php if ($objet): ?>
                     <input type="hidden" name="id" value="<?php echo $objet['id']; ?>">
@@ -263,12 +322,12 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `image_id=${imageId}`
+                    body: image_id=${imageId}
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const imageContainer = document.querySelector(`[data-image-id="${imageId}"]`);
+                        const imageContainer = document.querySelector([data-image-id="${imageId}"]);
                         if (imageContainer) {
                             imageContainer.remove();
                         }
@@ -292,59 +351,15 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
             for (const field of requiredFields) {
                 const input = document.getElementById(field);
                 if (!input.value.trim()) {
-                    alert(`Le champ ${input.previousElementSibling.textContent} est requis`);
+                    alert(Le champ ${input.previousElementSibling.textContent} est requis);
                     input.focus();
                     return;
                 }
             }
 
-            // Récupérer les données du formulaire
-            const formData = new FormData(this);
-            
-            // Envoyer les données
-            fetch('../Traitement/traitement_objet.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Si l'objet a été créé/modifié avec succès, uploader les images
-                    const imageFiles = document.getElementById('images').files;
-                    if (imageFiles.length > 0) {
-                        const imageFormData = new FormData();
-                        imageFormData.append('objet_id', data.objet_id);
-                        
-                        for (let i = 0; i < imageFiles.length; i++) {
-                            imageFormData.append('image', imageFiles[i]);
-                            
-                            fetch('../Traitement/traitement_image.php', {
-                                method: 'POST',
-                                body: imageFormData
-                            })
-                            .then(response => response.json())
-                            .then(imageData => {
-                                if (!imageData.success) {
-                                    console.error('Erreur lors de l\'upload de l\'image:', imageData.message);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                            });
-                        }
-                    }
-                    
-                    // Rediriger vers la liste des objets
-                    window.location.href = 'liste_objets.php';
-                } else {
-                    alert(data.message || 'Erreur lors de la sauvegarde de l\'objet');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Une erreur est survenue lors de la communication avec le serveur');
-            });
+            // Soumettre le formulaire directement
+            this.submit();
         });
     </script>
 </body>
-</html> 
+</html>

@@ -70,6 +70,9 @@ foreach ($reservations as $reservation) {
 
 // Convertir en format JSON pour JavaScript
 $dates_non_disponibles_json = json_encode($dates_non_disponibles);
+
+// Définir les frais de livraison
+$frais_livraison = 25;
 ?>
 
 <!DOCTYPE html>
@@ -236,7 +239,7 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
             <div class="col-lg-8 mx-auto">
                 <div class="reservation-container">
                     <!-- Image de l'annonce -->
-                    <img src="../photos/<?= htmlspecialchars($annonce['image_url']) ?>" 
+                    <img src="../uploads/<?= htmlspecialchars($annonce['image_url']) ?>" 
                          class="img-fluid w-100 reservation-image" 
                          alt="<?= htmlspecialchars($annonce['objet_nom']) ?>">
                     
@@ -294,7 +297,7 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                                     <label for="option_livraison" class="form-label">Option de livraison</label>
                                     <select class="form-select" id="option_livraison" name="option_de_livraison" required>
                                         <option value="">Choisir une option...</option>
-                                        <option value="domicile">Livraison à domicile</option>
+                                        <option value="domicile">Livraison à domicile (+ <?= $frais_livraison ?> dh)</option>
                                         <option value="recuperation">Récupération sur place</option>
                                     </select>
                                 </div>
@@ -315,6 +318,10 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                                             <span>Nombre de jours:</span>
                                             <span id="nbJours">0</span>
                                         </div>
+                                        <div class="d-flex justify-content-between mb-2" id="fraisLivraisonSection" style="display: none;">
+                                            <span>Frais de livraison:</span>
+                                            <span><?= $frais_livraison ?> dh</span>
+                                        </div>
                                         <hr>
                                         <div class="d-flex justify-content-between">
                                             <span><strong>Total:</strong></span>
@@ -322,23 +329,24 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                                         </div>
                                     </div>
                                 </div>
+                                
                                 <div class="row mt-4">
-    <div class="col-md-4">
-        <a href="../IHM/produits.php" class="btn btn-secondary w-100">
-            <i class="fas fa-arrow-left me-2"></i>Retour
-        </a>
-    </div>
-    <div class="col-md-4">
-        <button type="reset" class="btn btn-warning w-100">
-            <i class="fas fa-times-circle me-2"></i>Annuler
-        </button>
-    </div>
-    <div class="col-md-4">
-        <button type="submit" class="btn submit-btn w-100" <?= !$objet_disponible ? 'disabled' : '' ?>>
-            <i class="fas fa-check-circle me-2"></i>Confirmer
-        </button>
-    </div>
-</div>
+                                    <div class="col-md-4">
+                                        <a href="../IHM/produits.php" class="btn btn-secondary w-100">
+                                            <i class="fas fa-arrow-left me-2"></i>Retour
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="reset" class="btn btn-warning w-100" id="btnAnnuler">
+                                            <i class="fas fa-times-circle me-2"></i>Annuler
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="submit" class="btn submit-btn w-100" <?= !$objet_disponible ? 'disabled' : '' ?>>
+                                            <i class="fas fa-check-circle me-2"></i>Confirmer
+                                        </button>
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -370,6 +378,9 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
             
             // Dates non disponibles
             const datesNonDisponibles = <?= $dates_non_disponibles_json ?>;
+            
+            // Frais de livraison
+            const fraisLivraison = <?= $frais_livraison ?>;
             
             // Configuration commune pour flatpickr
             const configCalendrier = {
@@ -405,21 +416,26 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
             const optionLivraison = document.getElementById('option_livraison');
             const addressContainer = document.getElementById('addressContainer');
             const addressField = document.getElementById('address');
+            const fraisLivraisonSection = document.getElementById('fraisLivraisonSection');
             
             optionLivraison.addEventListener('change', function() {
                 if (this.value === 'domicile') {
                     addressContainer.style.display = 'block';
                     addressField.setAttribute('required', 'true');
+                    fraisLivraisonSection.style.display = 'flex';
                 } else {
                     addressContainer.style.display = 'none';
                     addressField.removeAttribute('required');
+                    fraisLivraisonSection.style.display = 'none';
                 }
+                calculeTotal();
             });
             
             // Calculer le total
             function calculeTotal() {
                 const dateDebut = document.getElementById('date_debut').value;
                 const dateFin = document.getElementById('date_fin').value;
+                const optionLivraisonValue = optionLivraison.value;
                 
                 if (dateDebut && dateFin) {
                     const debut = new Date(dateDebut);
@@ -428,7 +444,12 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 pour inclure le jour de début
                     
                     const prixJournalier = <?= $annonce['prix_journalier'] ?>;
-                    const total = diffDays * prixJournalier;
+                    let total = diffDays * prixJournalier;
+                    
+                    // Ajouter les frais de livraison si l'option domicile est sélectionnée
+                    if (optionLivraisonValue === 'domicile') {
+                        total += fraisLivraison;
+                    }
                     
                     document.getElementById('nbJours').textContent = diffDays;
                     document.getElementById('prixTotal').textContent = total + ' dh';
@@ -437,6 +458,22 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
             
             // Vérifier si l'objet est disponible
             const isObjetDisponible = <?= $objet_disponible ? 'true' : 'false' ?>;
+            
+            // Réinitialiser le formulaire
+            document.getElementById('btnAnnuler').addEventListener('click', function() {
+                // Réinitialiser la sélection des dates
+                dateDebutPicker.clear();
+                dateFinPicker.clear();
+                
+                // Réinitialiser l'option de livraison
+                optionLivraison.value = '';
+                addressContainer.style.display = 'none';
+                fraisLivraisonSection.style.display = 'none';
+                
+                // Réinitialiser le résumé
+                document.getElementById('nbJours').textContent = '0';
+                document.getElementById('prixTotal').textContent = '0 dh';
+            });
             
             // Valider le formulaire avant soumission
             document.getElementById('reservationForm').addEventListener('submit', function(e) {
@@ -449,7 +486,7 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                 
                 const dateDebut = document.getElementById('date_debut').value;
                 const dateFin = document.getElementById('date_fin').value;
-                const optionLivraison = document.getElementById('option_livraison').value;
+                const optionLivraisonValue = optionLivraison.value;
                 const address = document.getElementById('address').value;
                 
                 if (!dateDebut || !dateFin) {
@@ -458,13 +495,13 @@ $dates_non_disponibles_json = json_encode($dates_non_disponibles);
                     return;
                 }
                 
-                if (!optionLivraison) {
+                if (!optionLivraisonValue) {
                     e.preventDefault();
                     alert("Veuillez choisir une option de livraison");
                     return;
                 }
                 
-                if (optionLivraison === 'domicile' && !address.trim()) {
+                if (optionLivraisonValue === 'domicile' && !address.trim()) {
                     e.preventDefault();
                     alert("Veuillez entrer une adresse de livraison");
                     return;
