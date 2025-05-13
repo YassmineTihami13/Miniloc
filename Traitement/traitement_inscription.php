@@ -91,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Créer la session
         $_SESSION['user_id'] = $utilisateur['id'];
         $_SESSION['user_email'] = $utilisateur['email'];
-        $_SESSION['user_role'] = $utilisateur['role'];
+        $_SESSION['role'] = $utilisateur['role'];
         $_SESSION['is_client'] = $utilisateur['est_client'];
         $_SESSION['is_partenaire'] = $utilisateur['est_partenaire'];
 

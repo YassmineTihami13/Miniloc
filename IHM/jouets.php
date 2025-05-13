@@ -190,7 +190,7 @@ include_once('../Traitement/traitement_categorie.php');
             <?php foreach($annonces as $annonce): ?>
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
-                   <img src="../photos/<?= htmlspecialchars($annonce['image_url']) ?>"  class="card-img-top" alt="<?php echo htmlspecialchars($annonce['objet_nom']); ?>">
+                   <img src="../uploads/<?= htmlspecialchars($annonce['image_url']) ?>"  class="card-img-top" alt="<?php echo htmlspecialchars($annonce['objet_nom']); ?>">
                     <div class="card-body">
                         <span class="badge category-badge mb-2"><?php echo htmlspecialchars($annonce['categorie_nom']); ?></span>
                         <h5 class="card-title"><?php echo htmlspecialchars($annonce['objet_nom']); ?></h5>
