@@ -4,24 +4,29 @@ require_once('../BD/connexion.php');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $objet_id = intval($_POST['objet_id']);
-    $noteObjet = isset($_SESSION['note']);
+    $noteObjet = isset($_SESSION['note']) ? $_SESSION['note'] : null;
     $client_id = intval($_POST['client_id']);
     $note = intval($_POST['noteComment']);
     $commentaire = trim($_POST['commentaire']);
     $annonce_id = isset($_GET['id_annonce']) ? intval($_GET['id_annonce']) : null;
 
+   
+   
+
 //var_dump($objet_id, $client_id, $annonce_id,$note); exit;
     // 1. Vérifier que le client a une réservation terminée pour cet objet
     $sql = "SELECT r.id AS reservation_id, r.date_fin, a.proprietaire_id AS partenaire
-            FROM reservation r 
-            JOIN annonce a ON r.annonce_id = a.id 
-            WHERE r.client_id = ? AND a.objet_id = ? AND r.statut = 'terminé' 
-            LIMIT 1";
+        FROM reservation r 
+        JOIN annonce a ON r.annonce_id = a.id 
+        WHERE r.client_id = ? AND a.objet_id = ? AND r.statut = 'terminee'
+        LIMIT 1";
+
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([$client_id, $objet_id]);
     $reservation = $stmt->fetch();
 
+    
     if ($reservation) {
         $reservation_id = $reservation['reservation_id'];
         $date_fin = new DateTime($reservation['date_fin']);
@@ -32,14 +37,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         if ($today < $date_fin) {
             $_SESSION['message'] = "La réservation n'est pas encore terminée.";
-            header("Location: ../IHM/detailsAnnonce.php?id=" . $annonce_id . "&note=" . $noteObjet);
+            header("Location: ../IHM/detailsAnnonce.php?id=" . $annonce_id . "&note=" . urlencode($noteObjet));
+
 
             exit;
         }
 
         if ($interval < 7) {
             $_SESSION['message'] = "Vous devez attendre 7 jours après la fin de la réservation pour laisser un commentaire.Vous pouvez ajouter vos commentaires en répondant au formilaire d'évaluation dans votre boite email";
-            header("Location: ../IHM/detailsAnnonce.php?id=" . $annonce_id . "&note=" . $noteObjet);
+            header("Location: ../IHM/detailsAnnonce.php?id=" . $annonce_id . "&note=" . urlencode($noteObjet));
+
 
             exit;
         }
@@ -63,7 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['message'] = "Vous ne pouvez pas commenter ce produit car vous n'avez aucune réservation terminée pour ce produit.";
     }
 
-    header("Location: ../IHM/detailsAnnonce.php?id=" . $annonce_id . "&note=" . $noteObjet);
+    header("Location: ../IHM/detailsAnnonce.php?id=" . $annonce_id . "&note=" . urlencode($noteObjet));
+
 
     exit;
 } else {

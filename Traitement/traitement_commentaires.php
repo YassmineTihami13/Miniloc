@@ -7,7 +7,7 @@ function verifierCommentairesVisibles($reservation_id) {
     $sql = "SELECT r.*, a.proprietaire_id, a.objet_id 
             FROM reservation r 
             JOIN annonce a ON r.annonce_id = a.id 
-            WHERE r.id = ? AND r.statut = 'terminé'";
+            WHERE r.id = ? AND r.statut = 'terminee'";
             
     $stmt = $conn->prepare($sql);
     $stmt->execute([$reservation_id]);
@@ -35,7 +35,7 @@ function verifierCommentairesVisibles($reservation_id) {
     ]);
     $commentaires = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
-    return (count($commentaires) == 2 || $aujourd_hui >= $date_limite);
+    return (count($commentaires) == 1 || $aujourd_hui >= $date_limite);
 }
 
 function getCommentaires($objet_id, $type = 'client') {
@@ -98,38 +98,4 @@ function getClientInfo($user_id) {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$user_id]);
     return $stmt->fetch(PDO::FETCH_ASSOC); 
-}
-
-
-function getAllCommentairesWithDetails() {
-    global $conn;
-    
-    try {
-        $query = "SELECT e.*, u.nom, u.prenom, u.email, o.nom as objet_nom 
-                  FROM evaluation e 
-                  JOIN utilisateur u ON e.evaluateur_id = u.id 
-                  JOIN objet o ON e.objet_id = o.id 
-                  ORDER BY e.date DESC";
-                  
-        $stmt = $conn->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        error_log("Database error: " . $e->getMessage());
-        return [];
-    }
-}
-
-
-function deleteCommentaire($comment_id) { 
-    global $conn;
-    
-    try {
-        $query = "DELETE FROM evaluation WHERE id = ?";
-        $stmt = $conn->prepare($query);
-        return $stmt->execute([$comment_id]);
-    } catch (PDOException $e) {
-        error_log("Delete error: " . $e->getMessage());
-        return false;
-    }
 }
