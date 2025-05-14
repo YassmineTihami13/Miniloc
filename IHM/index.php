@@ -329,8 +329,8 @@ include_once('../Traitement/traitement_page_acceuil.php');
 
         <div class="image-container">
             <!-- Remplacer par vos images -->
-            <div class="circle-image small-circle " style="background-image: url('../photos/IMAGE1.png')"></div>
-            <div class="circle-image medium-circle" style="background-image: url('../photos/IMAGE2.jpg')"></div>
+            <div class="circle-image small-circle " style="background-image: url('../photos/IMAGE2.jpg')"></div>
+            <div class="circle-image medium-circle" style="background-image: url('../photos/IMAGE1.png')"></div>
         </div>
     </section>
 

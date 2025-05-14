@@ -62,7 +62,7 @@ if (isset($_GET['id']) ) {
     // Storing all necessary data in session variables
     $_SESSION['proprietaire'] = $proprietaire;
     $_SESSION['note'] = $note_moyenne;
-    $_SESSION['nbr_annonce'] = $nbr_publication-1;
+    $_SESSION['nbr_annonce'] = $nbr_publication;
     $_SESSION['details'] = $details;
     $_SESSION['objet_id'] = $objet_id;
     $_SESSION['moyenne']=$moyenne;

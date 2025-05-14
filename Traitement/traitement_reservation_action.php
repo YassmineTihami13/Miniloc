@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reservation_id'], $_P
     $query = "SELECT 
     r.*, 
     a.proprietaire_id, 
+    a.objet_id,
     o.nom AS objet_nom, 
     o.description AS objet_description,
     o.ville AS objet_ville,
@@ -191,6 +192,11 @@ WHERE r.id = :id
         $update = $conn->prepare("UPDATE reservation SET statut = 'rejete' WHERE id = :id");
         $update->bindParam(':id', $reservation_id, PDO::PARAM_INT);
         $update->execute();
+        
+        // NOUVEAU CODE : Mettre à jour l'état de l'objet en "non_loue"
+        $updateObjet = $conn->prepare("UPDATE objet SET etat = 'non_loue' WHERE id = :objet_id");
+        $updateObjet->bindParam(':objet_id', $res['objet_id'], PDO::PARAM_INT);
+        $updateObjet->execute();
 
         // Envoi de l'email au client avec le message de rejet
         try {
@@ -283,7 +289,7 @@ WHERE r.id = :id
             $mailClient->setFrom('no-reply@miniloc.com', 'MiniLoc');
             $mailClient->addAddress($res['client_email']);
             $mailClient->isHTML(true);
-            $lienClient = "http://localhost/Miniloc-main/IHM/formulaire_avis_client.php?reservation_id=" . $reservation_id;
+            $lienClient = "http://localhost/Miniloc-verificationFiches/IHM/formulaire_avis_client.php?reservation_id=" . $reservation_id;
 
             $mailClient->Subject = "Merci pour votre location ! Donnez votre avis";
             $mailClient->Body = "Bonjour,<br>Votre location de l'objet <b>" . htmlspecialchars($res['objet_nom']) . "</b> est terminée.<br>
@@ -310,7 +316,7 @@ WHERE r.id = :id
             $mailProprio->setFrom('no-reply@miniloc.com', 'MiniLoc');
             $mailProprio->addAddress($res['proprio_email']);
             $mailProprio->isHTML(true);
-            $lienProprio = "http://localhost/Miniloc-main/IHM/formulaire_avis_proprio.php?reservation_id=" . $reservation_id;
+            $lienProprio = "http://localhost/Miniloc-verificationFiches/IHM/formulaire_avis_proprio.php?reservation_id=" . $reservation_id;
             $mailProprio->Subject = "Votre objet a été rendu ! Donnez votre retour";
             $mailProprio->Body = "Bonjour,<br>La période de location de votre objet <b>" . htmlspecialchars($res['objet_nom']) . "</b> est terminée.<br>
             Merci de remplir <a href='$lienProprio'>ce formulaire</a> pour donner votre retour sur le client.<br><br>L'équipe MiniLoc";

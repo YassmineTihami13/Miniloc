@@ -1,25 +1,21 @@
 <?php
 session_start();
-// Vérifier si l'utilisateur est connecté
+// on vérifie si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
-    // Enregistrer l'URL actuelle pour rediriger après connexion
-    $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-    
-    // Rediriger vers la page de connexion
+    // on enregistre l'URL actuelle pour rediriger l'utilisateur après la connexion
+    $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];    
+    // on le rediriger vers la page de connexion
     header('Location: ../IHM/connexion.php');
     exit;
 }
-// Vérifier si l'ID de l'annonce est fourni
+// on vérifie si l'ID de l'annonce est fourni
 if (!isset($_GET['annonce_id']) || !is_numeric($_GET['annonce_id'])) {
     header('Location: ../IHM/produits.php');
     exit;
 }
-
 include_once('../BD/connexion.php');
-
 $annonce_id = (int)$_GET['annonce_id'];
-
-// Récupérer les informations sur l'annonce et l'objet
+// on récupére les informations sur l'annonce et l'objet
 $query = "SELECT a.*, o.nom as objet_nom, o.description, o.prix_journalier, o.ville, o.etat as objet_etat, i.url as image_url, c.nom as categorie_nom
           FROM annonce a
           JOIN objet o ON a.objet_id = o.id
@@ -31,47 +27,41 @@ $stmt = $conn->prepare($query);
 $stmt->bindParam(':annonce_id', $annonce_id, PDO::PARAM_INT);
 $stmt->execute();
 $annonce = $stmt->fetch();
-
-// Vérifier si l'annonce existe
+// on vérifie si l'annonce existe
 if (!$annonce) {
     header('Location:../IHM/ produits.php');
     exit;
 }
-
-// Vérifier si l'objet est disponible - on stocke cette info
+// on vérifie si l'objet est disponible et on stocke cette info
 $objet_disponible = ($annonce['objet_etat'] === 'non_loue');
-
 // Récupérer les périodes non disponibles (réservations existantes)
 $query_reservations = "SELECT date_debut, date_fin 
                       FROM reservation 
                       WHERE annonce_id = :annonce_id 
-                      AND statut != 'annulee'";
+                      AND statut != 'rejete'";
 $stmt_reservations = $conn->prepare($query_reservations);
 $stmt_reservations->bindParam(':annonce_id', $annonce_id, PDO::PARAM_INT);
 $stmt_reservations->execute();
 $reservations = $stmt_reservations->fetchAll();
 
-// Préparer les dates de l'annonce pour JavaScript (période globale de disponibilité)
+// on prépare les dates de l'annonce pour JavaScript pour gerer période globale de disponibilité
 $date_debut_annonce = $annonce['date_debut'];
 $date_fin_annonce = $annonce['date_fin'];
 
-// Préparer les dates non disponibles pour JavaScript
+// on prépare les dates non disponibles pour JavaScript
 $dates_non_disponibles = [];
 foreach ($reservations as $reservation) {
-    // Convertir en timestamp pour traiter les dates
+    // on convertit en timestamp pour traiter les dates
     $debut = strtotime($reservation['date_debut']);
-    $fin = strtotime($reservation['date_fin']);
-    
-    // Parcourir chaque jour de la période réservée
+    $fin = strtotime($reservation['date_fin']);    
+    // on parcourt chaque jour de la période réservée
     for ($i = $debut; $i <= $fin; $i += 86400) {
         $dates_non_disponibles[] = date('Y-m-d', $i);
     }
 }
-
-// Convertir en format JSON pour JavaScript
+// on convertit en format JSON pour JavaScript
 $dates_non_disponibles_json = json_encode($dates_non_disponibles);
-
-// Définir les frais de livraison
+// on définit les frais de livraison
 $frais_livraison = 25;
 ?>
 
@@ -116,7 +106,6 @@ $frais_livraison = 25;
             color: #333;
         }
         
-        /* Nouveau style du bouton */
         .submit-btn {
             background: linear-gradient(45deg, #87CEEB, #5CACEE);
             border: none;
@@ -198,14 +187,12 @@ $frais_livraison = 25;
             color: #dc3545;
         }
         
-        /* Style pour flatpickr */
         .flatpickr-day.disabled, .flatpickr-day.disabled:hover {
             color: rgba(57, 57, 57, 0.3);
             background: rgba(220, 53, 69, 0.1);
             cursor: not-allowed;
         }
         
-        /* Style pour l'alerte de non-disponibilité */
         .unavailable-alert {
             background-color: #ffecec;
             border-left: 5px solid #ff5252;
@@ -215,18 +202,17 @@ $frais_livraison = 25;
             color: #ff5252;
             font-weight: 500;
         }
-        /* Dans la section <style> */
-.alert-success {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
-    border-left: 5px solid #155724;
-}
+        .alert-success {    
+            background-color: #d4edda;
+             border-color: #c3e6cb;
+            color: #155724;
+            border-left: 5px solid #155724;
+        }
     </style>
 </head>
 <body style="background-color: #FFFFFF;">
     <?php include 'navbar.php'; ?>
-    <!-- Ajoutez ce bloc où vous souhaitez afficher les messages -->
+    <!-- afficher les messages de succes -->
 <?php if(isset($_SESSION['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= $_SESSION['success'] ?>
@@ -238,12 +224,11 @@ $frais_livraison = 25;
         <div class="row">
             <div class="col-lg-8 mx-auto">
                 <div class="reservation-container">
-                    <!-- Image de l'annonce -->
+                    <!-- ici l'image de l'annonce -->
                     <img src="../uploads/<?= htmlspecialchars($annonce['image_url']) ?>" 
                          class="img-fluid w-100 reservation-image" 
-                         alt="<?= htmlspecialchars($annonce['objet_nom']) ?>">
-                    
-                    <!-- Détails de l'annonce -->
+                         alt="<?= htmlspecialchars($annonce['objet_nom']) ?>">                 
+                    <!-- ici on affiche les détails de l'annonce -->
                     <div class="p-4">
                         <h2 class="mb-3"><?= htmlspecialchars($annonce['objet_nom']) ?></h2>
                         
@@ -260,8 +245,8 @@ $frais_livraison = 25;
                             </div>
                             <p><i class="fas fa-info-circle me-2"></i> <strong>Description:</strong> <?= htmlspecialchars($annonce['description']) ?></p>
                         </div>
-                        
-                        <!-- Formulaire de réservation -->
+                       
+                        <!-- ici il y a le formulaire de réservation -->
                         <div class="reservation-form">
                             <h4 class="mb-4"><i class="fas fa-calendar-check me-2"></i>Réserver cet article</h4>
                             
@@ -369,20 +354,17 @@ $frais_livraison = 25;
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Dates de l'annonce
             const dateDebutAnnonce = new Date('<?= $date_debut_annonce ?>');
-            const dateFinAnnonce = new Date('<?= $date_fin_annonce ?>');
-            
+            const dateFinAnnonce = new Date('<?= $date_fin_annonce ?>');            
             // Dates non disponibles
-            const datesNonDisponibles = <?= $dates_non_disponibles_json ?>;
-            
+            const datesNonDisponibles = <?= $dates_non_disponibles_json ?>;           
             // Frais de livraison
-            const fraisLivraison = <?= $frais_livraison ?>;
-            
-            // Configuration commune pour flatpickr
+            const fraisLivraison = <?= $frais_livraison ?>;           
+            // Configuration pour flatpickr
             const configCalendrier = {
                 locale: 'fr',
                 dateFormat: 'Y-m-d',
@@ -461,16 +443,11 @@ $frais_livraison = 25;
             
             // Réinitialiser le formulaire
             document.getElementById('btnAnnuler').addEventListener('click', function() {
-                // Réinitialiser la sélection des dates
                 dateDebutPicker.clear();
                 dateFinPicker.clear();
-                
-                // Réinitialiser l'option de livraison
                 optionLivraison.value = '';
                 addressContainer.style.display = 'none';
                 fraisLivraisonSection.style.display = 'none';
-                
-                // Réinitialiser le résumé
                 document.getElementById('nbJours').textContent = '0';
                 document.getElementById('prixTotal').textContent = '0 dh';
             });

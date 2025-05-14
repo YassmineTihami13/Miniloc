@@ -85,7 +85,7 @@ try {
         $adresse,
         $premium,
         $premium_start,
-        $premium_end
+        $duree
     ]);
 
     if (!$success) {

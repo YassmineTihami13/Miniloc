@@ -184,7 +184,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const userId = button.getAttribute('data-id');
     
     // Appel AJAX pour charger les données dynamiquement
-    fetch(../Traitement/traitement_commentaire_client.php?id=${userId})
+    fetch(`../Traitement/traitement_commentaire_client.php?id=${userId}`)
+
       .then(response => response.text())
       .then(html => {
         document.getElementById('modal-content-dynamique').innerHTML = html;
@@ -210,7 +211,8 @@ modalRejet.addEventListener('show.bs.modal', function (event) {
     // Afficher une info dans le modal (optionnel)
     var infoDiv = modalRejet.querySelector('#infoReservation');
     infoDiv.style.display = 'block';
-    infoDiv.innerHTML = <strong>Réservation pour :</strong> <em>${objetNom}</em><br><strong>Client :</strong> ${clientNom};
+    
+    infoDiv.innerHTML = `<strong>Réservation pour :</strong> <em>${objetNom}</em><br><strong>Client :</strong> ${clientNom}`;
 });
 </script>
 </body>

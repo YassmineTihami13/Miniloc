@@ -69,7 +69,6 @@ try {
         exit;
     }
 
-    // Vérifier si l'objet est disponible (non_loue) au lieu de vérifier le statut de l'annonce
     if ($annonce['objet_etat'] !== 'non_loue') {
         $_SESSION['error'] = "Cet objet n'est pas disponible à la location actuellement.";
         header('Location: ../IHM/produits.php');
@@ -87,7 +86,7 @@ try {
     // Vérifier que la période n'est pas déjà réservée
     $query_check = "SELECT COUNT(*) FROM reservation 
                     WHERE annonce_id = :annonce_id 
-                    AND statut != 'annulee'
+                    AND statut != 'rejete'
                     AND (
                         (date_debut <= :date_debut AND date_fin >= :date_debut) OR
                         (date_debut <= :date_fin AND date_fin >= :date_fin) OR
@@ -129,10 +128,8 @@ try {
     
     $reservation_id = $conn->lastInsertId();
     
-    // NOUVEAU CODE: Vérifier si la période réservée couvre toute la période de l'annonce
     $couvre_toute_periode = false;
-    
-    // 1. Vérifier d'abord si cette réservation couvre toute la période
+    // on verifie d'abord si cette réservation couvre toute la période
     if (strtotime($date_debut) <= strtotime($annonce['date_debut']) && 
         strtotime($date_fin) >= strtotime($annonce['date_fin'])) {
         $couvre_toute_periode = true;
@@ -199,7 +196,11 @@ try {
     // Valider la transaction
     $conn->commit();
     
-  
+  $query_proprio = "SELECT email FROM utilisateur WHERE id = :proprietaire_id";
+$stmt_proprio = $conn->prepare($query_proprio);
+$stmt_proprio->bindParam(':proprietaire_id', $annonce['proprietaire_id'], PDO::PARAM_INT);
+$stmt_proprio->execute();
+$proprio = $stmt_proprio->fetch();
 
     try {
         $mail = new PHPMailer(true);

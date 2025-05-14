@@ -4,7 +4,6 @@ include_once '../BD/connexion.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-
 require __DIR__ . '/PHPMailer/src/PHPMailer.php';
 require __DIR__ . '/PHPMailer/src/SMTP.php';
 require __DIR__ . '/PHPMailer/src/Exception.php';
@@ -45,7 +44,7 @@ function sendEmail($destinataire, $sujet, $message, $nom, $prenom) {
         $mail->addAddress($destinataire, $nom . ' ' . $prenom);
 
         // Contenu
-        $mail->isHTML(true);                                   // Email format HTML
+        $mail->isHTML(true);                                
         $mail->Subject = $sujet;
         
         // Version HTML du message
@@ -65,12 +64,12 @@ function sendEmail($destinataire, $sujet, $message, $nom, $prenom) {
 try {
     // Selon l'action demandée
     if ($action === 'valider') {
-        // 1. Mettre à jour la visibilité de l'annonce
+        // Mettre à jour la visibilité de l'annonce
         $sql = "UPDATE annonce SET visibility = 1 WHERE id = :id";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':id' => $annonceId]);
         
-        // 2. Récupérer les informations du partenaire pour l'email
+        // Récupérer les informations du partenaire pour l'email
         $sql = "SELECT u.id AS proprietaire_id, u.email, u.nom, u.prenom, o.nom AS objet_nom 
                 FROM annonce a 
                 JOIN utilisateur u ON a.proprietaire_id = u.id 
@@ -80,10 +79,10 @@ try {
         $stmt->execute([':id' => $annonceId]);
         $info = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        // 3. Envoyer un email de notification au partenaire
+        // Envoyer un email de notification au partenaire
         if ($info) {
             $destinataire = $info['email'];
-            $sujet = "Miniloc - Votre annonce a été validée";
+            $sujet = "Miniloc - Votre annonce a ete validee";
             $message = "Bonjour " . htmlspecialchars($info['prenom']) . " " . htmlspecialchars($info['nom']) . ",\n\n";
             $message .= "Nous sommes heureux de vous informer que votre annonce pour \"" . htmlspecialchars($info['objet_nom']) . "\" a été validée par notre équipe administrative.\n";
             $message .= "Votre annonce est maintenant visible par tous les utilisateurs de Miniloc.\n\n";

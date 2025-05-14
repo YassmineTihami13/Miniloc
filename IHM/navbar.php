@@ -1,20 +1,58 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 require_once '../BD/connexion.php';
 
-if (isset($_SESSION['user_id'])) {
-    $user_id = $_SESSION['user_id'];
-    $stmt = $conn->prepare("SELECT nom FROM utilisateur WHERE id = ?");
-    $stmt->execute([$user_id]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    $user_name = $user ? $user['nom'] : 'Partenaire';
+if (!isset($_SESSION['user_id'])) {
+    $isConnected = false;
 } else {
-    $user_name = 'Invité';
+    $isConnected = true;
+    $user_id = $_SESSION['user_id'];
+
+    $stmt = $conn->prepare("SELECT * FROM utilisateur WHERE id = :id");
+    $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        $isConnected = false;
+    }
 }
+
+// Fonction utilitaire pour afficher image ou placeholder
+function imgOrPlaceholder($img, $alt = 'Image', $width = '100%') {
+    if ($img && trim($img) !== '') {
+        return '<img src="' . htmlspecialchars($img) . '" alt="' . htmlspecialchars($alt) . '" style="width:' . $width . '; border-radius:8px; object-fit:cover;">';
+    } else {
+        return '<div style="width:' . $width . '; height:150px; background:#ddd; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#666;">Pas d\'image</div>';
+    }
+}
+$success = '';
+$error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_notification'])) {
+    // Récupérer l'état actuel pour inverser
+    $stmt = $conn->prepare("SELECT activate_notification FROM utilisateur WHERE id = :id");
+    $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $current = $stmt->fetchColumn();
+
+    if ($current !== false) {
+        $new_state = $current ? 0 : 1;
+        $upd = $conn->prepare("UPDATE utilisateur SET activate_notification = :new_state WHERE id = :id");
+        $upd->bindParam(':new_state', $new_state, PDO::PARAM_INT);
+        $upd->bindParam(':id', $user_id, PDO::PARAM_INT);
+        if ($upd->execute()) {
+            $success = $new_state ? "Notifications activées avec succès." : "Notifications désactivées avec succès.";
+        } else {
+            $error = "Erreur lors de la mise à jour des notifications.";
+        }
+    } else {
+        $error = "Utilisateur introuvable.";
+    }
+}
+
 ?>
+
+
 
 
 <!DOCTYPE html>
@@ -25,6 +63,7 @@ if (isset($_SESSION['user_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BabyShop Navbar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    
     <style>
         * {
             margin: 0;
@@ -101,7 +140,7 @@ if (isset($_SESSION['user_id'])) {
             margin-left: auto;
         }
 
-        .auth-buttons login {
+        .auth-buttons a {
             padding: 8px 20px;
             border-radius: 15px;
             text-decoration: none;
@@ -151,7 +190,7 @@ if (isset($_SESSION['user_id'])) {
 
 
         /* Style des boutons */
-        .auth-buttons login {
+        .auth-buttons a {
             padding: 8px 15px;
             border-radius: 20px;
             text-decoration: none;
@@ -195,17 +234,232 @@ if (isset($_SESSION['user_id'])) {
     padding-left: 15px;
     
 }
+.profile-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    gap: 10px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: background 0.2s;
+}
+.profile-btn:hover {
+    background: #fce4ec;
+}
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.profile-sidebar {
+    position: fixed;
+    top: 0; right: -320px;
+    width: 320px;
+    height: 100%;
+    background: #fff;
+    box-shadow: -2px 0 15px rgba(0,0,0,0.1);
+    z-index: 9999;
+    transition: right 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+.profile-sidebar.open {
+    right: 0;
+}
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.2);
+    z-index: 9998;
+}
+.sidebar-overlay.active {
+    display: block;
+}
+.profile-header {
+    padding: 32px 24px 16px 24px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    position: relative;
+}
+.avatar-lg {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+.profile-header h4 {
+    margin: 0 0 8px 0;
+    color: #e91e63;
+}
+.close-sidebar {
+    position: absolute;
+    top: 15px; right: 15px;
+    background: none;
+    border: none;
+    font-size: 26px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.profile-menu {
+    position: absolute;
+    top: 65px;
+    right: 25px;
+    width: 340px;
+    max-width: 95vw;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    padding: 28px 26px 20px 26px;
+    z-index: 10000;
+    overflow: auto;
+    animation: fadeIn 0.3s;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px);} to { opacity: 1; transform: none;} }
+.close-profile-menu {
+    position: absolute;
+    top: 13px; right: 13px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #bbb;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.close-profile-menu:hover { color: #e91e63; }
+.profile-header {
+    text-align: center;
+    margin-bottom: 18px;
+}
+.profile-header img, .profile-header .avatar {
+    width: 85px; height: 85px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #e91e63;
+    margin-bottom: 8px;
+}
+.profile-header h4 {
+    margin: 8px 0 2px 0;
+    color: #e91e63;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+.profile-role {
+    font-size: 1rem;
+    color: #888;
+    display: block;
+    margin-bottom: 4px;
+}
+.profile-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+}
+.profile-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 10px;
+}
+.profile-list i {
+    min-width: 22px;
+    font-size: 1.08rem;
+    color: #e91e63;
+}
+.profile-list .text-success { color: #4caf50; }
+.profile-list .text-danger { color: #dc3545; }
+.profile-list .text-secondary { color: #bbb; }
+.notif-form {
+    display: inline;
+}
+.notif-switch {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    margin-left: 8px;
+    vertical-align: middle;
+    transition: color 0.2s;
+}
+.notif-switch .fa-toggle-on { color: #4caf50; }
+.notif-switch .fa-toggle-off { color: #bbb; }
+.notif-switch:hover .fa-toggle-on,
+.notif-switch:hover .fa-toggle-off { color: #e91e63; }
+
+.profile-docs h5 {
+    font-size: 1.07rem;
+    color: #2196f3;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.doc-images {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+.doc-images div {
+    text-align: center;
+}
+.doc-images img, .doc-images div > div {
+    width: 90px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-bottom: 3px;
+}
+.doc-images span {
+    display: block;
+    font-size: 0.93rem;
+    color: #888;
+    margin-bottom: 3px;
+}
+.logout-btn {
+    margin: 18px auto 0 auto;
+    display: block;
+    width: 90%;
+    padding: 10px 0;
+    border-radius: 8px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    background: #e91e63;
+    color: #fff;
+    text-align: center;
+    transition: background 0.2s;
+    border: none;
+}
+.logout-btn:hover { background: #c2185b; }
+@media (max-width: 500px) {
+    .profile-menu { right: 2vw; left: 2vw; width: 96vw; padding: 15px 3vw; }
+    .doc-images { flex-direction: column; gap: 8px; }
+}
+
     </style>
 </head>
 
 <body>
     <nav class="navbar">
-        <div class="nav-left">
-            <div class="logo"><i class="fa-solid fa-baby"></i> BabyShop</div>
-            <span class="welcome-message">
-            <i class="fa-regular fa-user"></i><?php echo htmlspecialchars($user_name); ?>
-            </span>
-        </div>
+    <div class="nav-left">
+    <div class="logo"><i class="fa-solid fa-baby"></i> BabyShop</div>
+    <?php if ($isConnected): ?>
+<button class="profile-btn" id="toggleProfileMenu">
+    <img src="<?= htmlspecialchars($user['img_profil'] ?: 'https://ui-avatars.com/api/?name=' . urlencode($user['prenom'] . ' ' . $user['nom']) . '&background=e91e63&color=fff') ?>" alt="avatar" class="avatar" />
+    <span><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></span>
+    <i class="fa-solid fa-chevron-down"></i>
+</button>
+<?php endif; ?>
+
+</div>
+
         <ul class="nav-links">
 
             <?php
@@ -256,8 +510,8 @@ if (isset($_SESSION['user_id'])) {
                 // Bouton de déconnexion
                 echo '<a href="../Traitement/deconnexion.php" class="logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a>';
             } else {
-                echo '<a href="../IHM/connexion_admin.php" style="color:  #007bff; text-decoration: none; font-weight: 500; padding-bottom: 2px  #007bff;">Espace admin</a>';
                 // Utilisateur non connecté
+                echo '<a href="../IHM/connexion_admin.php" style="color: #333; text-decoration: none; font-weight: 500; padding-bottom: 2px; border-bottom: 2px solid transparent; transition: 0.3s;" onmouseover="this.style.borderBottom=\'2px solid #007bff\'" onmouseout="this.style.borderBottom=\'2px solid transparent\'">Espace admin</a>';
                 echo '<a href="../IHM/inscription.php" style="background-color: #e91e63; color: #fff; padding: 8px 20px; border-radius: 15px; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-user-plus"></i> S\'inscrire</a>';
                 echo '<a href="../IHM/connexion.php" class="login"><i class="fa-solid fa-right-to-bracket"></i> Connexion</a>';
             }
@@ -295,8 +549,61 @@ if (isset($_SESSION['user_id'])) {
             </div>
         </div>
     </div>
+    <?php if ($isConnected): ?>
+       
+
+<div id="profileMenu" class="profile-menu" style="display:none;">
+    <button class="close-profile-menu" title="Fermer"><i class="fa-solid fa-xmark"></i></button>
+    <div class="profile-header">
+        <?= imgOrPlaceholder($user['img_profil'], 'Photo de profil', '100px') ?>
+        <h4><?= htmlspecialchars($user['prenom'] . ' ' . $user['nom']) ?></h4>
+        <span class="profile-role"><i class="fa-solid fa-user-tag"></i> <?= htmlspecialchars(ucfirst($user['role'])) ?></span>
+        <form method="post" style="display:inline;">
+                <input type="hidden" name="toggle_notification" value="1">
+                <button type="submit" class="btn btn-sm <?= $user['activate_notification'] ? 'btn-success' : 'btn-outline-secondary' ?>">
+                    <?= $user['activate_notification'] ? 'Activer les notifications' : 'Désactiver les notifications' ?>
+                </button>
+            </form>
+
+    </div>
+    <ul class="profile-list">
+        <li><i class="fa-solid fa-envelope"></i> <span><?= htmlspecialchars($user['email']) ?></span></li>
+        <li><i class="fa-solid fa-id-card"></i> <span><?= htmlspecialchars($user['CIN']) ?></span></li>
+        <li><i class="fa-solid fa-location-dot"></i> <span><?= nl2br(htmlspecialchars($user['address'])) ?></span></li>
+        <li><i class="fa-solid fa-user"></i> <span>Client :</span> <?= $user['est_client'] ? '<i class="fa-solid fa-check text-success"></i>' : '<i class="fa-solid fa-xmark text-danger"></i>' ?></li>
+        <li><i class="fa-solid fa-handshake"></i> <span>Partenaire :</span> <?= $user['est_partenaire'] ? '<i class="fa-solid fa-check text-success"></i>' : '<i class="fa-solid fa-xmark text-danger"></i>' ?></li>
+    </ul>
+
+  
+    
+</div>
+<?php endif; ?>
+
+
+
+
 
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('toggleProfileMenu');
+    const menu = document.getElementById('profileMenu');
+    const closeBtn = document.querySelector('.close-profile-menu');
+    if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
+        document.addEventListener('click', function() { menu.style.display = 'none'; });
+        menu.addEventListener('click', function(e) { e.stopPropagation(); });
+        if (closeBtn) closeBtn.addEventListener('click', () => { menu.style.display = 'none'; });
+    }
+});
+</script>
+
+
 
 <script>
     let roleToBecome = '';

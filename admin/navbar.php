@@ -3,8 +3,8 @@
         <div class="logo"><i class="fa-solid fa-baby"></i> BabyShop</div>
         <ul class="nav-links">
              <li><a href="../admin/tableau_de_bord_admin.php"><i class="fa-solid fa-gift"></i> Annonces</a></li>
-            <li><a href="gestion_commentaires.php"><i class="fa-solid fa-comments"></i> Commentaires</a></li>
-            <li><a href="../IHM/Utilisateur_admin.php"><i class="fa-solid fa-user"></i> Utilisateurs</a></li>
+            <li><a href="../admin/gestion_commentaires.php"><i class="fa-solid fa-comments"></i> Commentaires</a></li>
+            <li><a href="../admin/Utilisateur_admin.php"><i class="fa-solid fa-user"></i> Utilisateurs</a></li>
         
         </ul>
     </div>

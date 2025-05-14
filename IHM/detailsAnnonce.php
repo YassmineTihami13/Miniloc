@@ -98,7 +98,7 @@ h2, h4 {
             <p><strong>Adresse de l'objet :</strong> <?= htmlspecialchars($_SESSION['details'][0]['ville']) ?></p>
             <p><strong>Adresse de l'annonce :</strong> <?= htmlspecialchars($_SESSION['details'][0]['adress']) ?></p>
             <p><strong>Status de l'objet :</strong> <?= htmlspecialchars($_SESSION['details'][0]['etat']) ?></p>
-            <p><strong>Nombre de location précédente :</strong> <?= isset($_SESSION['nbr_annonce']) && $_SESSION['nbr_annonce'] !== null  ? $_SESSION['nbr_annonce']  : 'Cest la prmière publication de cet objet' ?></p>
+            <p><strong>Nombre d'annonces précédentes :</strong> <?= isset($_SESSION['nbr_annonce']) && $_SESSION['nbr_annonce'] !== null  ? $_SESSION['nbr_annonce']  : 'Cest la prmière publication de cet objet' ?></p>
             <p><strong>Évaluation de l'objet :</strong> 
                 <?= isset($_SESSION['note']) && $_SESSION['note'] !== null 
                     ? $_SESSION['note'] . ' ⭐' 

@@ -1,5 +1,5 @@
 <?php
-require_once('../BD/connexion.php');
+require_once(__DIR__ . '/../BD/connexion.php');
 
 function verifierCommentairesVisibles($reservation_id) {
     global $conn;
@@ -7,7 +7,7 @@ function verifierCommentairesVisibles($reservation_id) {
     $sql = "SELECT r.*, a.proprietaire_id, a.objet_id 
             FROM reservation r 
             JOIN annonce a ON r.annonce_id = a.id 
-            WHERE r.id = ? AND r.statut = 'terminé'";
+            WHERE r.id = ? AND r.statut = 'terminee'";
             
     $stmt = $conn->prepare($sql);
     $stmt->execute([$reservation_id]);
@@ -100,7 +100,6 @@ function getClientInfo($user_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC); 
 }
 
-
 function getAllCommentairesWithDetails() {
     global $conn;
     
@@ -110,8 +109,7 @@ function getAllCommentairesWithDetails() {
                   JOIN utilisateur u ON e.evaluateur_id = u.id 
                   JOIN objet o ON e.objet_id = o.id 
                   ORDER BY e.date DESC";
-                  
-        $stmt = $conn->prepare($query);
+                  $stmt = $conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -120,8 +118,7 @@ function getAllCommentairesWithDetails() {
     }
 }
 
-
-function deleteCommentaire($comment_id) { 
+function deleteCommentaire($comment_id) {
     global $conn;
     
     try {
