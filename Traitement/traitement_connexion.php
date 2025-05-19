@@ -18,6 +18,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $utilisateur = getUtilisateurParEmail($email);
 
     if ($utilisateur && password_verify($mot_de_passe, $utilisateur['mot_de_passe'])) {
+
+        if (!$utilisateur['is_verified']) {
+        echo "Veuillez vérifier votre email avant de vous connecter";
+        exit;
+    }
         // Authentification réussie
         $_SESSION['user_id'] = $utilisateur['id'];
         $_SESSION['user_email'] = $utilisateur['email'];

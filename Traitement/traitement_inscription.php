@@ -1,11 +1,103 @@
 
 <?php
+ob_start();
 session_start();
 if (isset($_SESSION['user_id'])) {
     header("Location: index.php");
 }
-include '../BD/utilisateurBD.php'; // Assure-toi que cette inclusion est correcte
-  // Vérifie également cette inclusion
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// Inclure PHPMailer AVANT tout code d'exécution
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require __DIR__ . '/PHPMailer/src/Exception.php';
+require __DIR__ . '/PHPMailer/src/PHPMailer.php';
+require __DIR__ . '/PHPMailer/src/SMTP.php';
+
+include __DIR__ . '/../BD/connexion.php';
+include __DIR__ . '/../BD/utilisateurBD.php';
+
+function envoyerEmailVerification($email, $nom, $verification_token)
+{
+    $mail = new PHPMailer(true);
+
+    try {
+        // Configuration SMTP
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'lamiae.maroun@etu.uae.ac.ma';
+        $mail->Password = 'eouo jxub gqfw qfic';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port = 465;
+        $mail->SMTPDebug = 0; // Activation du mode debug
+
+        // Configuration de l'email
+        $mail->setFrom('lamiae.maroun@etu.uae.ac.ma', 'MiniLoc'); // Doit correspondre à l'email SMTP
+        $mail->addAddress($email, $nom);
+
+        // Contenu
+        $mail->isHTML(true);
+        $mail->Subject = 'Verification de votre email';
+        $lien_verification = "http://localhost/Miniloc-verificationFiches/verifier.php?token=$verification_token";
+        $mail->Body = '
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 20px auto; padding: 30px; border: 1px solid #e0e0e0; border-radius: 10px; }
+        .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #2196F3; }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #2196F3;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2 style="color: #2196F3; margin: 0">Bienvenue sur MiniLoc 👶</h2>
+        </div>
+        
+        <p>Bonjour ' . htmlspecialchars($nom) . ',</p>
+        <p>Merci pour votre inscription! Veuillez cliquer sur le bouton ci-dessous pour activer votre compte :</p>
+        
+        <p style="text-align: center">
+            <a href="' . $lien_verification . '" class="button">
+                Activer mon compte
+            </a>
+        </p>
+
+        <p>Ou copiez ce lien dans votre navigateur :</p>
+        <p style="word-break: break-all">' . $lien_verification . '</p>
+
+        <div class="footer">
+            <p>Si vous n\'avez pas créé de compte, veuillez ignorer cet email.</p>
+            <p>© ' . date('Y') . ' MiniLoc - Tous droits réservés</p>
+        </div>
+    </div>
+</body>
+</html>';
+
+        // Ajouter une version texte brut
+        $mail->AltBody = "Bonjour $nom,\n\nMerci pour votre inscription! Cliquez sur ce lien pour activer votre compte :\n$lien_verification";
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        error_log("ERREUR SMTP: " . $mail->ErrorInfo);
+        return false;
+    }
+}
 
 // Vérification que les champs sont bien envoyés et non vides
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -61,6 +153,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $img_cin_front = uploadImage('img_cin_front');
     $img_cin_back = uploadImage('img_cin_back');
 
+    $verification_token = bin2hex(random_bytes(32));
     // Vérification de la connexion à la base de données
     if (!$conn) {
         echo "Erreur de connexion à la base de données.";
@@ -80,24 +173,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $img_cin_back,
         $address,
         $est_client,
-        $est_partenaire
+        $est_partenaire,
+        $verification_token
     );
 
     // Si l'inscription est réussie
     if ($success) {
-        // Récupérer TOUTES les infos du nouvel utilisateur
-        $utilisateur = getUtilisateurParEmail($email); // Utilisez votre fonction existante
-        
-        // Créer la session
-        $_SESSION['user_id'] = $utilisateur['id'];
-        $_SESSION['user_email'] = $utilisateur['email'];
-        $_SESSION['role'] = $utilisateur['role'];
-        $_SESSION['is_client'] = $utilisateur['est_client'];
-        $_SESSION['is_partenaire'] = $utilisateur['est_partenaire'];
-
-        header("Location: traitement_index.php"); // Redirection immédiate
+        // Envoyer l'email de vérification
+        if (envoyerEmailVerification($email, "$prenom $nom", $verification_token)) {
+            ob_end_clean(); // Nettoie le buffer sans l'envoyer
+            header("Location: ../IHM/inscription_succes.php?email=" . urlencode($email));
+            exit;
+        } else {
+            echo "Erreur lors de l'envoi de l'email de vérification";
+        }
         exit;
-    } else {
-        echo "Erreur lors de l'inscription.";
     }
 }
